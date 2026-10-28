@@ -25,4 +25,112 @@
   <data name="InvalidModelStateTitle" xml:space="preserve">
     <value>The request contains invalid values.</value>
   </data>
+  <data name="BusinessRequestFailed" xml:space="preserve">
+    <value>The business request could not be completed.</value>
+  </data>
+  <data name="BusinessTaxIdInvalid" xml:space="preserve">
+    <value>Enter an eleven-digit tax identifier.</value>
+  </data>
+  <data name="BusinessNameInvalid" xml:space="preserve">
+    <value>Enter a business name with no more than 150 characters.</value>
+  </data>
+  <data name="BusinessAddressInvalid" xml:space="preserve">
+    <value>Enter an address with no more than 250 characters.</value>
+  </data>
+  <data name="BusinessLatitudeInvalid" xml:space="preserve">
+    <value>Select a latitude between -90 and 90.</value>
+  </data>
+  <data name="BusinessLongitudeInvalid" xml:space="preserve">
+    <value>Select a longitude between -180 and 180.</value>
+  </data>
+  <data name="BusinessDetailsInvalid" xml:space="preserve">
+    <value>Review the required business details.</value>
+  </data>
+  <data name="BusinessTaxIdDuplicate" xml:space="preserve">
+    <value>A business with this tax identifier is already registered.</value>
+  </data>
+  <data name="BusinessTaxIdReadOnly" xml:space="preserve">
+    <value>The registered tax identifier cannot be changed.</value>
+  </data>
+  <data name="BusinessUnauthenticated" xml:space="preserve">
+    <value>An accepted user identity is required.</value>
+  </data>
+  <data name="BusinessForbidden" xml:space="preserve">
+    <value>You cannot manage this business.</value>
+  </data>
+  <data name="BusinessNotFound" xml:space="preserve">
+    <value>The business is not available.</value>
+  </data>
+  <data name="BusinessResponseSuccess" xml:space="preserve">
+    <value>The business data was returned.</value>
+  </data>
+  <data name="BusinessResponseCreated" xml:space="preserve">
+    <value>The business was registered. The Location header identifies its resource.</value>
+  </data>
+  <data name="BusinessResponseInvalid" xml:space="preserve">
+    <value>Required or invalid fields are identified in the validation response.</value>
+  </data>
+  <data name="BusinessResponseConflict" xml:space="preserve">
+    <value>A duplicate or immutable tax identifier prevents the operation.</value>
+  </data>
+  <data name="GetBusinessesSummary" xml:space="preserve">
+    <value>List my businesses</value>
+  </data>
+  <data name="GetBusinessesDescription" xml:space="preserve">
+    <value>Return the businesses owned by the accepted administrator. An empty list is a successful response.</value>
+  </data>
+  <data name="GetBusinessByIdSummary" xml:space="preserve">
+    <value>Get a business profile</value>
+  </data>
+  <data name="GetBusinessByIdDescription" xml:space="preserve">
+    <value>Return a business owned by the accepted administrator. Unavailable and foreign resources return 404.</value>
+  </data>
+  <data name="CreateBusinessSummary" xml:space="preserve">
+    <value>Register a business</value>
+  </data>
+  <data name="CreateBusinessDescription" xml:space="preserve">
+    <value>Register a business with a unique eleven-digit tax identifier and a saved location. Ownership and audit dates are assigned by the server.</value>
+  </data>
+  <data name="UpdateBusinessSummary" xml:space="preserve">
+    <value>Update a business profile</value>
+  </data>
+  <data name="UpdateBusinessDescription" xml:space="preserve">
+    <value>Update the business name, address and coordinates. The tax identifier remains unchanged.</value>
+  </data>
+  <data name="BusinessCallerHeader" xml:space="preserve">
+    <value>Development only: a configured synthetic administrator ID. This header is rejected outside Development and does not replace authentication.</value>
+  </data>
+  <data name="BusinessResourceDescription" xml:space="preserve">
+    <value>Saved business profile with a textual public ID and server audit dates.</value>
+  </data>
+  <data name="CreateBusinessResourceDescription" xml:space="preserve">
+    <value>Required registration details. The client cannot assign the owner or audit dates.</value>
+  </data>
+  <data name="UpdateBusinessResourceDescription" xml:space="preserve">
+    <value>Editable business data. A supplied tax identifier must match the registered value.</value>
+  </data>
+  <data name="BusinessIdDescription" xml:space="preserve">
+    <value>Public business identifier, represented as text.</value>
+  </data>
+  <data name="BusinessTaxIdDescription" xml:space="preserve">
+    <value>Eleven digits stored as text, including initial zeroes.</value>
+  </data>
+  <data name="BusinessNameDescription" xml:space="preserve">
+    <value>Business name, required, up to 150 characters.</value>
+  </data>
+  <data name="BusinessAddressDescription" xml:space="preserve">
+    <value>Street address, required, up to 250 characters.</value>
+  </data>
+  <data name="BusinessLatitudeDescription" xml:space="preserve">
+    <value>Saved latitude in degrees, between -90 and 90.</value>
+  </data>
+  <data name="BusinessLongitudeDescription" xml:space="preserve">
+    <value>Saved longitude in degrees, between -180 and 180.</value>
+  </data>
+  <data name="BusinessCreatedAtDescription" xml:space="preserve">
+    <value>UTC creation time assigned by the server.</value>
+  </data>
+  <data name="BusinessUpdatedAtDescription" xml:space="preserve">
+    <value>UTC update time assigned by the server.</value>
+  </data>
 </root>
