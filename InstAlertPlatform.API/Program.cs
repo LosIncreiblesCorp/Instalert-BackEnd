@@ -8,6 +8,12 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Scalar.AspNetCore;
+using InstAlertPlatform.API.Business.Application.Internal.CommandServices;
+using InstAlertPlatform.API.Business.Application.Internal.QueryServices;
+using InstAlertPlatform.API.Business.Application.Services;
+using InstAlertPlatform.API.Business.Domain.Repositories;
+using InstAlertPlatform.API.Business.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using InstAlertPlatform.API.Business.Interfaces.Rest.Transform;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +34,7 @@ builder.Services.AddControllers(options => options.Conventions.Add(new KebabCase
                 context.ModelState,
                 statusCode: StatusCodes.Status400BadRequest,
                 title: localizer["InvalidModelStateTitle"].Value);
+            problem.Extensions["code"] = "validation";
             var result = new BadRequestObjectResult(problem);
             result.ContentTypes.Add("application/problem+json");
             return result;
@@ -41,13 +48,18 @@ builder.Services.AddProblemDetails(options =>
         if (context.ProblemDetails.Status is null or >= 500)
         {
             var localizer = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<SharedResource>>();
-            context.ProblemDetails.Title ??= localizer["UnexpectedServerError"].Value;
-            context.ProblemDetails.Detail ??= localizer["UnexpectedErrorProcessingRequest"].Value;
+            context.ProblemDetails.Title = localizer["UnexpectedServerError"].Value;
+            context.ProblemDetails.Detail = localizer["UnexpectedErrorProcessingRequest"].Value;
+            context.ProblemDetails.Extensions["code"] = "unexpected";
         }
     };
 });
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddOperationTransformer(LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddSchemaTransformer(LocalizedOpenApiAssembler.TransformSchemaAsync);
+});
 builder.Services.AddDbContext<AppDbContext>((services, options) =>
 {
     var template = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -60,10 +72,26 @@ builder.Services.AddDbContext<AppDbContext>((services, options) =>
         .EnableDetailedErrors();
 });
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IBusinessProfileRepository, BusinessProfileRepository>();
+builder.Services.AddScoped<IBusinessProfileCommandService, BusinessProfileCommandService>();
+builder.Services.AddScoped<IBusinessProfileQueryService, BusinessProfileQueryService>();
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+{
+    var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    if (origins.Length > 0) policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+}));
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+if (app.Environment.IsDevelopment() &&
+    app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup") &&
+    !string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync();
+}
+
 string[] supportedCultures = ["en-US", "es-419"];
 var localization = new RequestLocalizationOptions()
     .SetDefaultCulture("en-US")
@@ -71,8 +99,10 @@ var localization = new RequestLocalizationOptions()
     .AddSupportedUICultures(supportedCultures);
 localization.ApplyCurrentCultureToResponseHeaders = true;
 app.UseRequestLocalization(localization);
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthorization();
 app.MapOpenApi();
 app.MapScalarApiReference();
