@@ -25,4 +25,112 @@
   <data name="InvalidModelStateTitle" xml:space="preserve">
     <value>La solicitud contiene valores no válidos.</value>
   </data>
+  <data name="BusinessRequestFailed" xml:space="preserve">
+    <value>No se pudo completar la solicitud del comercio.</value>
+  </data>
+  <data name="BusinessTaxIdInvalid" xml:space="preserve">
+    <value>Ingresa un RUC de once dígitos.</value>
+  </data>
+  <data name="BusinessNameInvalid" xml:space="preserve">
+    <value>Ingresa un nombre de negocio de hasta 150 caracteres.</value>
+  </data>
+  <data name="BusinessAddressInvalid" xml:space="preserve">
+    <value>Ingresa una dirección de hasta 250 caracteres.</value>
+  </data>
+  <data name="BusinessLatitudeInvalid" xml:space="preserve">
+    <value>Selecciona una latitud entre -90 y 90.</value>
+  </data>
+  <data name="BusinessLongitudeInvalid" xml:space="preserve">
+    <value>Selecciona una longitud entre -180 y 180.</value>
+  </data>
+  <data name="BusinessDetailsInvalid" xml:space="preserve">
+    <value>Revisa los datos obligatorios del comercio.</value>
+  </data>
+  <data name="BusinessTaxIdDuplicate" xml:space="preserve">
+    <value>Ya existe un comercio registrado con este RUC.</value>
+  </data>
+  <data name="BusinessTaxIdReadOnly" xml:space="preserve">
+    <value>El RUC registrado no se puede cambiar.</value>
+  </data>
+  <data name="BusinessUnauthenticated" xml:space="preserve">
+    <value>Se necesita una identidad de usuario aceptada.</value>
+  </data>
+  <data name="BusinessForbidden" xml:space="preserve">
+    <value>No tienes permiso para gestionar este comercio.</value>
+  </data>
+  <data name="BusinessNotFound" xml:space="preserve">
+    <value>El comercio no está disponible.</value>
+  </data>
+  <data name="BusinessResponseSuccess" xml:space="preserve">
+    <value>Se devolvieron los datos del comercio.</value>
+  </data>
+  <data name="BusinessResponseCreated" xml:space="preserve">
+    <value>Se registró el comercio. La cabecera Location identifica su recurso.</value>
+  </data>
+  <data name="BusinessResponseInvalid" xml:space="preserve">
+    <value>La respuesta de validación identifica los campos obligatorios o inválidos.</value>
+  </data>
+  <data name="BusinessResponseConflict" xml:space="preserve">
+    <value>Un RUC duplicado o no modificable impide completar la operación.</value>
+  </data>
+  <data name="GetBusinessesSummary" xml:space="preserve">
+    <value>Consultar mis comercios</value>
+  </data>
+  <data name="GetBusinessesDescription" xml:space="preserve">
+    <value>Devuelve los comercios del administrador aceptado. Una lista vacía es una respuesta correcta.</value>
+  </data>
+  <data name="GetBusinessByIdSummary" xml:space="preserve">
+    <value>Consultar el perfil de un comercio</value>
+  </data>
+  <data name="GetBusinessByIdDescription" xml:space="preserve">
+    <value>Devuelve un comercio del administrador aceptado. Los recursos no disponibles o ajenos devuelven 404.</value>
+  </data>
+  <data name="CreateBusinessSummary" xml:space="preserve">
+    <value>Registrar un comercio</value>
+  </data>
+  <data name="CreateBusinessDescription" xml:space="preserve">
+    <value>Registra un comercio con RUC único de once dígitos y ubicación guardada. El servidor asigna la propiedad y las fechas de auditoría.</value>
+  </data>
+  <data name="UpdateBusinessSummary" xml:space="preserve">
+    <value>Actualizar el perfil de un comercio</value>
+  </data>
+  <data name="UpdateBusinessDescription" xml:space="preserve">
+    <value>Actualiza el nombre, la dirección y las coordenadas del comercio. El RUC permanece sin cambios.</value>
+  </data>
+  <data name="BusinessCallerHeader" xml:space="preserve">
+    <value>Solo Development: ID de administrador sintético configurado. Esta cabecera se rechaza fuera de Development y no reemplaza la autenticación.</value>
+  </data>
+  <data name="BusinessResourceDescription" xml:space="preserve">
+    <value>Perfil de comercio guardado con ID público textual y fechas de auditoría del servidor.</value>
+  </data>
+  <data name="CreateBusinessResourceDescription" xml:space="preserve">
+    <value>Datos obligatorios de registro. El cliente no puede asignar al propietario ni las fechas de auditoría.</value>
+  </data>
+  <data name="UpdateBusinessResourceDescription" xml:space="preserve">
+    <value>Datos editables del comercio. Si se incluye el RUC, debe coincidir con el valor registrado.</value>
+  </data>
+  <data name="BusinessIdDescription" xml:space="preserve">
+    <value>Identificador público del comercio, representado como texto.</value>
+  </data>
+  <data name="BusinessTaxIdDescription" xml:space="preserve">
+    <value>Once dígitos almacenados como texto, incluidos los ceros iniciales.</value>
+  </data>
+  <data name="BusinessNameDescription" xml:space="preserve">
+    <value>Nombre del comercio, obligatorio, de hasta 150 caracteres.</value>
+  </data>
+  <data name="BusinessAddressDescription" xml:space="preserve">
+    <value>Dirección postal, obligatoria, de hasta 250 caracteres.</value>
+  </data>
+  <data name="BusinessLatitudeDescription" xml:space="preserve">
+    <value>Latitud guardada en grados, entre -90 y 90.</value>
+  </data>
+  <data name="BusinessLongitudeDescription" xml:space="preserve">
+    <value>Longitud guardada en grados, entre -180 y 180.</value>
+  </data>
+  <data name="BusinessCreatedAtDescription" xml:space="preserve">
+    <value>Fecha de creación UTC asignada por el servidor.</value>
+  </data>
+  <data name="BusinessUpdatedAtDescription" xml:space="preserve">
+    <value>Fecha de actualización UTC asignada por el servidor.</value>
+  </data>
 </root>

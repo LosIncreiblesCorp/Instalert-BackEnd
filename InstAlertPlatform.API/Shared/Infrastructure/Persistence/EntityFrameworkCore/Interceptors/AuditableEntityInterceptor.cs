@@ -23,6 +23,7 @@ public sealed class AuditableEntityInterceptor : SaveChangesInterceptor
         if (context is null) return;
 
         var now = DateTimeOffset.UtcNow;
+        now = now.AddTicks(-(now.Ticks % TimeSpan.TicksPerMicrosecond));
 
         foreach (var entry in context.ChangeTracker.Entries<IAuditableEntity>())
         {
