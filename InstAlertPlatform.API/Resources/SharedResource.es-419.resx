@@ -1,32 +1,568 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
   <resheader name="version">
-    <value>1.3</value>
+    <value>2.0</value>
   </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-  </resheader>
-  <data name="UnexpectedServerError" xml:space="preserve">
-    <value>Error inesperado del servidor</value>
+  <data name="Alerts_ChangePreferences_Description" xml:space="preserve">
+    <value>Actualiza la preferencia admitida de cuenta regresiva de pánico. Esta preferencia pertenece a Alert, no a Notifications.</value>
   </data>
-  <data name="UnexpectedErrorProcessingRequest" xml:space="preserve">
-    <value>Ocurrió un error inesperado al procesar su solicitud.</value>
+  <data name="Alerts_ChangePreferences_Summary" xml:space="preserve">
+    <value>Cambiar periodo de gracia de pánico</value>
+  </data>
+  <data name="Alerts_Complete_Description" xml:space="preserve">
+    <value>Finaliza un reporte pendiente asociado a un pánico resuelto. Rechaza finalizarlo otra vez y conserva el pánico como resuelto.</value>
+  </data>
+  <data name="Alerts_Complete_Summary" xml:space="preserve">
+    <value>Completar reporte de pánico</value>
+  </data>
+  <data name="Alerts_Confirm_Description" xml:space="preserve">
+    <value>Confirma una preparación válida después del plazo y guarda el pánico activo una sola vez. Las notificaciones y proyecciones geográficas se procesan mediante outbox.</value>
+  </data>
+  <data name="Alerts_Confirm_Summary" xml:space="preserve">
+    <value>Confirmar alerta de pánico</value>
+  </data>
+  <data name="Alerts_Draft_Description" xml:space="preserve">
+    <value>Guarda detalles del incidente únicamente después de resolver el pánico y mientras su reporte siga pendiente.</value>
+  </data>
+  <data name="Alerts_Draft_Summary" xml:space="preserve">
+    <value>Guardar borrador del reporte de pánico</value>
+  </data>
+  <data name="Alerts_Get_Description" xml:space="preserve">
+    <value>Devuelve un registro de Alert después de comprobar el acceso al negocio.</value>
+  </data>
+  <data name="Alerts_Get_Summary" xml:space="preserve">
+    <value>Consultar alerta o reporte</value>
+  </data>
+  <data name="Alerts_List_Description" xml:space="preserve">
+    <value>Devuelve registros autorizados del negocio con filtro opcional de estado y paginación. El estado del pánico y la finalización del reporte son independientes.</value>
+  </data>
+  <data name="Alerts_List_Summary" xml:space="preserve">
+    <value>Listar alertas y reportes</value>
+  </data>
+  <data name="Alerts_Location_Description" xml:space="preserve">
+    <value>El propietario actualiza la ubicación de un pánico activo y la nueva revisión se proyecta a Mapping.</value>
+  </data>
+  <data name="Alerts_Location_Summary" xml:space="preserve">
+    <value>Actualizar ubicación del pánico activo</value>
+  </data>
+  <data name="Alerts_Preferences_Description" xml:space="preserve">
+    <value>Devuelve la preferencia del periodo de gracia de pánico de quien consulta.</value>
+  </data>
+  <data name="Alerts_Preferences_Summary" xml:space="preserve">
+    <value>Consultar preferencias de pánico</value>
+  </data>
+  <data name="Alerts_Prepare_Description" xml:space="preserve">
+    <value>Emite una prueba firmada con vencimiento y una fecha mínima de confirmación del servidor. No guarda una alerta durante el periodo de gracia.</value>
+  </data>
+  <data name="Alerts_Prepare_Summary" xml:space="preserve">
+    <value>Preparar cuenta regresiva de pánico</value>
+  </data>
+  <data name="Alerts_Report_Description" xml:space="preserve">
+    <value>Crea un reporte de actividad sospechosa, incidente pasado o condición de riesgo. Estos reportes no generan notificaciones cercanas de pánico activo.</value>
+  </data>
+  <data name="Alerts_Report_Summary" xml:space="preserve">
+    <value>Enviar reporte de incidente</value>
+  </data>
+  <data name="Alerts_Resolve_Description" xml:space="preserve">
+    <value>Marca el pánico del propietario como resuelto sin completar su reporte. Repetir la resolución conserva el estado existente.</value>
+  </data>
+  <data name="Alerts_Resolve_Summary" xml:space="preserve">
+    <value>Resolver alerta de pánico</value>
+  </data>
+  <data name="BusinessMembers_Activate_Description" xml:space="preserve">
+    <value>Activa una membresía operativa después de comprobar los cupos de la suscripción vigente.</value>
+  </data>
+  <data name="BusinessMembers_Activate_Summary" xml:space="preserve">
+    <value>Activar membresía</value>
+  </data>
+  <data name="BusinessMembers_Deactivate_Description" xml:space="preserve">
+    <value>Desactiva únicamente esta membresía del negocio y libera su cupo. La cuenta global de identidad no cambia.</value>
+  </data>
+  <data name="BusinessMembers_Deactivate_Summary" xml:space="preserve">
+    <value>Desactivar membresía</value>
+  </data>
+  <data name="BusinessMembers_OwnMemberships_Description" xml:space="preserve">
+    <value>Devuelve las membresías operativas activas e inactivas de quien consulta para explicar la falta de acceso al negocio.</value>
+  </data>
+  <data name="BusinessMembers_OwnMemberships_Summary" xml:space="preserve">
+    <value>Consultar membresías propias</value>
+  </data>
+  <data name="BusinessMembers_Update_Description" xml:space="preserve">
+    <value>El administrador actualiza datos de la membresía comercial del empleado sin modificar su cuenta global de identidad.</value>
+  </data>
+  <data name="BusinessMembers_Update_Summary" xml:space="preserve">
+    <value>Actualizar datos del personal</value>
+  </data>
+  <data name="Businesses_Create_Description" xml:space="preserve">
+    <value>Registra el negocio y su membresía de administrador. Rechaza un RUC duplicado.</value>
+  </data>
+  <data name="Businesses_Create_Summary" xml:space="preserve">
+    <value>Registrar negocio</value>
+  </data>
+  <data name="Businesses_Get_Description" xml:space="preserve">
+    <value>Devuelve el perfil de un negocio al que la persona usuaria tiene acceso.</value>
+  </data>
+  <data name="Businesses_Get_Summary" xml:space="preserve">
+    <value>Consultar perfil del negocio</value>
+  </data>
+  <data name="Businesses_Invitations_Description" xml:space="preserve">
+    <value>El administrador consulta las invitaciones y sus estados actuales.</value>
+  </data>
+  <data name="Businesses_Invitations_Summary" xml:space="preserve">
+    <value>Listar invitaciones del personal</value>
+  </data>
+  <data name="Businesses_Invite_Description" xml:space="preserve">
+    <value>Crea una invitación pendiente y reserva un cupo disponible de la suscripción. El envío de correo se procesa por separado.</value>
+  </data>
+  <data name="Businesses_Invite_Summary" xml:space="preserve">
+    <value>Invitar personal operativo</value>
+  </data>
+  <data name="Businesses_List_Description" xml:space="preserve">
+    <value>Devuelve los negocios administrados por quien consulta o asociados a una membresía operativa activa.</value>
+  </data>
+  <data name="Businesses_List_Summary" xml:space="preserve">
+    <value>Listar negocios accesibles</value>
+  </data>
+  <data name="Businesses_Members_Description" xml:space="preserve">
+    <value>El administrador consulta las membresías que pertenecen a este negocio.</value>
+  </data>
+  <data name="Businesses_Members_Summary" xml:space="preserve">
+    <value>Listar personal del negocio</value>
+  </data>
+  <data name="Businesses_Seats_Description" xml:space="preserve">
+    <value>Devuelve el límite de la suscripción activa, las membresías operativas activas y las reservas por invitaciones pendientes. El administrador no consume cupo.</value>
+  </data>
+  <data name="Businesses_Seats_Summary" xml:space="preserve">
+    <value>Consultar cupos del personal</value>
+  </data>
+  <data name="Businesses_Update_Description" xml:space="preserve">
+    <value>El administrador actualiza nombre, dirección y coordenadas del negocio utilizadas por las proyecciones geográficas.</value>
+  </data>
+  <data name="Businesses_Update_Summary" xml:space="preserve">
+    <value>Actualizar perfil del negocio</value>
+  </data>
+  <data name="Dashboard_Current_Description" xml:space="preserve">
+    <value>Devuelve proyecciones de lectura por rol del mes actual con límites de America/Lima. Un negocio accesible sin actividad devuelve indicadores en cero o vacíos.</value>
+  </data>
+  <data name="Dashboard_Current_Summary" xml:space="preserve">
+    <value>Consultar dashboard del mes actual</value>
+  </data>
+  <data name="Dashboard_Generate_Description" xml:space="preserve">
+    <value>El administrador guarda una instantánea inmutable para fechas inclusivas en America/Lima. No se admiten fechas futuras. El servidor calcula el corte y las métricas. Generar nuevamente guarda otro reporte.</value>
+  </data>
+  <data name="Dashboard_Generate_Summary" xml:space="preserve">
+    <value>Generar un reporte por rango de fechas</value>
+  </data>
+  <data name="Dashboard_Get_Description" xml:space="preserve">
+    <value>Consulta un reporte guardado por su ID opaco dentro del comercio autorizado. La lectura no lo recalcula.</value>
+  </data>
+  <data name="Dashboard_Get_Summary" xml:space="preserve">
+    <value>Consultar reporte guardado</value>
+  </data>
+  <data name="Dashboard_List_Description" xml:space="preserve">
+    <value>El administrador consulta los reportes por rango guardados, del más reciente al más antiguo. Las instantáneas mensuales históricas siguen disponibles.</value>
+  </data>
+  <data name="Dashboard_List_Summary" xml:space="preserve">
+    <value>Listar reportes guardados</value>
+  </data>
+  <data name="EmergencyContacts_Create_Description" xml:space="preserve">
+    <value>Guarda un contacto validado para el empleado operativo. El correo es opcional; los contactos sin correo no pueden recibir avisos por ese canal.</value>
+  </data>
+  <data name="EmergencyContacts_Create_Summary" xml:space="preserve">
+    <value>Añadir contacto de emergencia</value>
+  </data>
+  <data name="EmergencyContacts_Delete_Description" xml:space="preserve">
+    <value>Elimina un contacto propio y devuelve una respuesta exitosa sin contenido.</value>
+  </data>
+  <data name="EmergencyContacts_Delete_Summary" xml:space="preserve">
+    <value>Eliminar contacto de emergencia</value>
+  </data>
+  <data name="EmergencyContacts_Get_Description" xml:space="preserve">
+    <value>Devuelve un contacto propio y no revela los contactos de otra persona.</value>
+  </data>
+  <data name="EmergencyContacts_Get_Summary" xml:space="preserve">
+    <value>Consultar contacto de emergencia</value>
+  </data>
+  <data name="EmergencyContacts_List_Description" xml:space="preserve">
+    <value>Devuelve los contactos de emergencia que pertenecen al empleado operativo.</value>
+  </data>
+  <data name="EmergencyContacts_List_Summary" xml:space="preserve">
+    <value>Listar contactos de emergencia</value>
+  </data>
+  <data name="EmergencyContacts_Update_Description" xml:space="preserve">
+    <value>Actualiza los datos de contacto de un registro propio después de validarlos.</value>
+  </data>
+  <data name="EmergencyContacts_Update_Summary" xml:space="preserve">
+    <value>Actualizar contacto de emergencia</value>
+  </data>
+  <data name="ErrorDetail400" xml:space="preserve">
+    <value>Revisa los datos enviados.</value>
+  </data>
+  <data name="ErrorDetail401" xml:space="preserve">
+    <value>Se requiere una identidad válida.</value>
+  </data>
+  <data name="ErrorDetail403" xml:space="preserve">
+    <value>No tienes permiso para este recurso.</value>
+  </data>
+  <data name="ErrorDetail404" xml:space="preserve">
+    <value>El recurso no está disponible.</value>
+  </data>
+  <data name="ErrorDetail409" xml:space="preserve">
+    <value>El estado actual no permite esta operación. Actualiza los datos.</value>
+  </data>
+  <data name="ErrorDetail500" xml:space="preserve">
+    <value>Ocurrió un error interno.</value>
+  </data>
+  <data name="ErrorDetail503" xml:space="preserve">
+    <value>La integración requerida no está configurada o disponible.</value>
+  </data>
+  <data name="Field_activeEmployees" xml:space="preserve">
+    <value>Membresías operativas activas que consumen cupos de la suscripción.</value>
+  </data>
+  <data name="Field_address" xml:space="preserve">
+    <value>Dirección legible del negocio.</value>
+  </data>
+  <data name="Field_amount" xml:space="preserve">
+    <value>Importe monetario decimal en la moneda indicada.</value>
+  </data>
+  <data name="Field_availableSeats" xml:space="preserve">
+    <value>Capacidad restante después de las membresías operativas activas e invitaciones pendientes.</value>
+  </data>
+  <data name="Field_businessId" xml:space="preserve">
+    <value>Identificador del negocio que define el alcance del recurso.</value>
+  </data>
+  <data name="Field_cancelAtPeriodEnd" xml:space="preserve">
+    <value>Indica si la renovación está cancelada mientras continúa vigente el periodo pagado verificado.</value>
+  </data>
+  <data name="Field_checkoutId" xml:space="preserve">
+    <value>Identificador generado por el servidor que relaciona esta aprobación con el negocio y plan seleccionado.</value>
+  </data>
+  <data name="Field_code" xml:space="preserve">
+    <value>Motivo de error estable y legible por software; no cambia con el idioma de la respuesta.</value>
+  </data>
+  <data name="Field_createdAt" xml:space="preserve">
+    <value>Fecha y hora UTC de creación del registro.</value>
+  </data>
+  <data name="Field_currency" xml:space="preserve">
+    <value>Código ISO de moneda asociado al importe.</value>
+  </data>
+  <data name="Field_customId" xml:space="preserve">
+    <value>Valor de correlación del servidor que debe adjuntarse a la nueva suscripción PayPal.</value>
+  </data>
+  <data name="Field_dni" xml:space="preserve">
+    <value>Exactamente ocho dígitos almacenados como texto para conservar ceros iniciales.</value>
+  </data>
+  <data name="Field_email" xml:space="preserve">
+    <value>Dirección de correo de contacto; su uso y obligatoriedad dependen del recurso.</value>
+  </data>
+  <data name="Field_employeeId" xml:space="preserve">
+    <value>Identificador del empleado operativo asociado a este registro.</value>
+  </data>
+  <data name="Field_expiresAt" xml:space="preserve">
+    <value>Instante UTC después del cual este recurso o prueba temporal deja de aceptarse.</value>
+  </data>
+  <data name="Field_id" xml:space="preserve">
+    <value>Identificador estable del recurso.</value>
+  </data>
+  <data name="Field_incidentCount" xml:space="preserve">
+    <value>Cantidad de incidentes distintos que cumplen las condiciones en la ventana de clasificación de la celda.</value>
+  </data>
+  <data name="Field_latitude" xml:space="preserve">
+    <value>Latitud en grados decimales, de -90 a 90; se proporciona junto con longitud.</value>
+  </data>
+  <data name="Field_locale" xml:space="preserve">
+    <value>Preferencia general de idioma: en_US o es_419.</value>
+  </data>
+  <data name="Field_location" xml:space="preserve">
+    <value>Ubicación legible del incidente que acompaña a sus coordenadas.</value>
+  </data>
+  <data name="Field_longitude" xml:space="preserve">
+    <value>Longitud en grados decimales, de -180 a 180; se proporciona junto con latitud.</value>
+  </data>
+  <data name="Field_maxEmployees" xml:space="preserve">
+    <value>Máximo de membresías operativas activas más invitaciones pendientes admitido por el plan; los administradores no consumen cupo.</value>
+  </data>
+  <data name="Field_month" xml:space="preserve">
+    <value>Mes calendario en formato yyyy-MM según el calendario de reportes de America/Lima.</value>
+  </data>
+  <data name="Field_nearbyAlertsEnabled" xml:space="preserve">
+    <value>Indica si los pánicos activos cercanos recién confirmados pueden generar avisos en la bandeja de este destinatario.</value>
+  </data>
+  <data name="Field_nearbyRadiusMeters" xml:space="preserve">
+    <value>Radio de recepción de 100, 500 o 1000 metros desde las coordenadas guardadas del negocio.</value>
+  </data>
+  <data name="Field_notBefore" xml:space="preserve">
+    <value>Instante UTC antes del cual el servidor rechaza la confirmación del pánico.</value>
+  </data>
+  <data name="Field_panicGracePeriodSeconds" xml:space="preserve">
+    <value>Periodo de gracia configurado y validado por el servidor antes de confirmar un pánico, en segundos.</value>
+  </data>
+  <data name="Field_phone" xml:space="preserve">
+    <value>Número telefónico de contacto representado como texto.</value>
+  </data>
+  <data name="Field_preparationToken" xml:space="preserve">
+    <value>Prueba temporal firmada devuelta al preparar un pánico; no es un token de autenticación.</value>
+  </data>
+  <data name="Field_radiusMeters" xml:space="preserve">
+    <value>Radio de búsqueda en metros desde las coordenadas guardadas del negocio.</value>
+  </data>
+  <data name="Field_readAt" xml:space="preserve">
+    <value>Instante UTC en que el destinatario leyó la notificación; nulo significa no leída.</value>
+  </data>
+  <data name="Field_reportStatus" xml:space="preserve">
+    <value>Estado de finalización del reporte asociado, independiente de la resolución del pánico.</value>
+  </data>
+  <data name="Field_reservedSeats" xml:space="preserve">
+    <value>Cupos reservados por invitaciones pendientes.</value>
+  </data>
+  <data name="Field_resolvedAt" xml:space="preserve">
+    <value>Instante UTC de resolución del pánico; nulo mientras no esté resuelto.</value>
+  </data>
+  <data name="Field_riskLevel" xml:space="preserve">
+    <value>Clasificación por cantidad de incidentes en treinta días: bajo 1–5, medio 6–14 y alto desde 15.</value>
+  </data>
+  <data name="Field_sentAt" xml:space="preserve">
+    <value>Instante UTC de aceptación por el proveedor; no demuestra recepción ni lectura.</value>
+  </data>
+  <data name="Field_sourceAlertId" xml:space="preserve">
+    <value>Identificador del registro autoritativo de Alert que origina esta proyección o notificación.</value>
+  </data>
+  <data name="Field_subscriptionId" xml:space="preserve">
+    <value>Identificador de suscripción o del proveedor requerido por esta operación de pago.</value>
+  </data>
+  <data name="Field_summary" xml:space="preserve">
+    <value>Proyección de indicadores por rol guardada para el periodo indicado.</value>
+  </data>
+  <data name="Field_taxId" xml:space="preserve">
+    <value>RUC del negocio de once dígitos almacenado como texto.</value>
+  </data>
+  <data name="Field_updatedAt" xml:space="preserve">
+    <value>Fecha y hora UTC de la última modificación guardada.</value>
+  </data>
+  <data name="Field_userId" xml:space="preserve">
+    <value>Identificador de la persona propietaria de este registro.</value>
+  </data>
+  <data name="Field_version" xml:space="preserve">
+    <value>Revisión opaca de concurrencia optimista del recurso guardado.</value>
+  </data>
+  <data name="HealthLiveSummary" xml:space="preserve">
+    <value>Comprobar ejecución del servicio</value>
+  </data>
+  <data name="HealthReadySummary" xml:space="preserve">
+    <value>Comprobar disponibilidad de la base de datos</value>
   </data>
   <data name="InvalidModelStateTitle" xml:space="preserve">
-    <value>La solicitud contiene valores no válidos.</value>
+    <value>Revisa los datos enviados.</value>
   </data>
-  <data name="BusinessRequestFailed" xml:space="preserve">
-    <value>No se pudo completar la solicitud del comercio.</value>
+  <data name="Mapping_ActiveAlerts_Description" xml:space="preserve">
+    <value>Devuelve proyecciones visibles y geolocalizadas de pánicos activos dentro del radio solicitado desde el negocio.</value>
+  </data>
+  <data name="Mapping_ActiveAlerts_Summary" xml:space="preserve">
+    <value>Consultar pánicos activos del mapa</value>
+  </data>
+  <data name="Mapping_Businesses_Description" xml:space="preserve">
+    <value>Devuelve negocios registrados con coordenadas válidas dentro del radio consultado. La visibilidad no exige verificación.</value>
+  </data>
+  <data name="Mapping_Businesses_Summary" xml:space="preserve">
+    <value>Consultar negocios del mapa</value>
+  </data>
+  <data name="Mapping_Incident_Description" xml:space="preserve">
+    <value>Devuelve una proyección de incidente visible dentro del radio autorizado del negocio, o no encontrado si no está disponible.</value>
+  </data>
+  <data name="Mapping_Incident_Summary" xml:space="preserve">
+    <value>Consultar detalle de incidente del mapa</value>
+  </data>
+  <data name="Mapping_Incidents_Description" xml:space="preserve">
+    <value>Devuelve pánicos activos y reportes publicados elegibles cercanos al negocio, con filtros opcionales de categoría y fecha de registro.</value>
+  </data>
+  <data name="Mapping_Incidents_Summary" xml:space="preserve">
+    <value>Buscar incidentes del mapa</value>
+  </data>
+  <data name="Mapping_Zone_Description" xml:space="preserve">
+    <value>Devuelve una celda de riesgo disponible y los detalles de su proyección de incidentes para el alcance geográfico solicitado.</value>
+  </data>
+  <data name="Mapping_Zone_Summary" xml:space="preserve">
+    <value>Consultar detalle de celda de riesgo</value>
+  </data>
+  <data name="Mapping_Zones_Description" xml:space="preserve">
+    <value>Devuelve celdas visibles clasificadas por los 30 días anteriores: bajo 1–5, medio 6–14 y alto desde 15. Los filtros de visualización no recalculan esta ventana de clasificación.</value>
+  </data>
+  <data name="Mapping_Zones_Summary" xml:space="preserve">
+    <value>Consultar celdas de concentración de riesgo</value>
+  </data>
+  <data name="Notifications_Deliveries_Description" xml:space="preserve">
+    <value>Devuelve intentos y estados de envío asociados a quien consulta. La aceptación del proveedor no demuestra recepción ni lectura.</value>
+  </data>
+  <data name="Notifications_Deliveries_Summary" xml:space="preserve">
+    <value>Consultar estados de envío</value>
+  </data>
+  <data name="Notifications_List_Description" xml:space="preserve">
+    <value>Devuelve la bandeja del negocio de quien consulta, de más reciente a más antigua, con paginación. El frontend consulta esta bandeja mientras está visible.</value>
+  </data>
+  <data name="Notifications_List_Summary" xml:space="preserve">
+    <value>Consultar notificaciones recibidas</value>
+  </data>
+  <data name="Notifications_Preferences_Description" xml:space="preserve">
+    <value>Devuelve la preferencia de avisos cercanos de pánico activo y el radio de recepción para este negocio.</value>
+  </data>
+  <data name="Notifications_Preferences_Summary" xml:space="preserve">
+    <value>Consultar preferencias de notificación</value>
+  </data>
+  <data name="Notifications_Read_Description" xml:space="preserve">
+    <value>Actualiza la lectura de una notificación propia sin modificar la alerta de origen.</value>
+  </data>
+  <data name="Notifications_Read_Summary" xml:space="preserve">
+    <value>Marcar notificación como leída</value>
+  </data>
+  <data name="Notifications_Update_Description" xml:space="preserve">
+    <value>Guarda la preferencia de avisos cercanos de pánico activo y un radio de 100, 500 o 1000 metros medido desde la ubicación guardada del negocio.</value>
+  </data>
+  <data name="Notifications_Update_Summary" xml:space="preserve">
+    <value>Cambiar preferencias de notificación</value>
+  </data>
+  <data name="PayPalWebhook_Receive_Description" xml:space="preserve">
+    <value>Verifica la firma de PayPal y concilia eventos admitidos de suscripción o pago de forma idempotente. Lo invoca PayPal, no el frontend.</value>
+  </data>
+  <data name="PayPalWebhook_Receive_Summary" xml:space="preserve">
+    <value>Recibir evento de PayPal</value>
+  </data>
+  <data name="Plans_Get_Description" xml:space="preserve">
+    <value>Devuelve el catálogo de planes mensuales, moneda, precio y límite de empleados operativos.</value>
+  </data>
+  <data name="Plans_Get_Summary" xml:space="preserve">
+    <value>Listar planes mensuales</value>
+  </data>
+  <data name="Profiles_Get_Description" xml:space="preserve">
+    <value>Devuelve los datos personales de quien consulta. No permite leer el perfil de otra persona.</value>
+  </data>
+  <data name="Profiles_Get_Summary" xml:space="preserve">
+    <value>Consultar perfil personal</value>
+  </data>
+  <data name="Profiles_Locale_Description" xml:space="preserve">
+    <value>Guarda en_US o es_419 como preferencia general de idioma.</value>
+  </data>
+  <data name="Profiles_Locale_Summary" xml:space="preserve">
+    <value>Cambiar idioma de la aplicación</value>
+  </data>
+  <data name="Profiles_Preferences_Description" xml:space="preserve">
+    <value>Devuelve la preferencia de idioma de la persona usuaria.</value>
+  </data>
+  <data name="Profiles_Preferences_Summary" xml:space="preserve">
+    <value>Consultar preferencias generales</value>
+  </data>
+  <data name="Profiles_Update_Description" xml:space="preserve">
+    <value>Actualiza nombres, DNI de ocho dígitos almacenado como texto y teléfono opcional. No modifica credenciales.</value>
+  </data>
+  <data name="Profiles_Update_Summary" xml:space="preserve">
+    <value>Actualizar perfil personal</value>
+  </data>
+  <data name="RequestFailedTitle" xml:space="preserve">
+    <value>No se pudo completar la solicitud.</value>
+  </data>
+  <data name="Response200" xml:space="preserve">
+    <value>La operación fue exitosa y devuelve su representación documentada.</value>
+  </data>
+  <data name="Response201" xml:space="preserve">
+    <value>Se creó el recurso. Location identifica el recurso creado.</value>
+  </data>
+  <data name="Response204" xml:space="preserve">
+    <value>La operación fue exitosa y no contiene cuerpo de respuesta.</value>
+  </data>
+  <data name="Response400" xml:space="preserve">
+    <value>La solicitud contiene valores faltantes o inválidos.</value>
+  </data>
+  <data name="Response401" xml:space="preserve">
+    <value>No se proporcionó una identidad aceptada.</value>
+  </data>
+  <data name="Response403" xml:space="preserve">
+    <value>La persona usuaria no tiene el acceso o la propiedad requeridos.</value>
+  </data>
+  <data name="Response404" xml:space="preserve">
+    <value>El recurso solicitado no está disponible dentro del alcance autorizado.</value>
+  </data>
+  <data name="Response409" xml:space="preserve">
+    <value>Un duplicado, cambio concurrente, regla de cupos o estado inválido impide la operación. Consulta code para conocer el motivo.</value>
+  </data>
+  <data name="Response500" xml:space="preserve">
+    <value>Ocurrió un fallo inesperado del servidor o la persistencia. No se revelan detalles internos.</value>
+  </data>
+  <data name="Response503" xml:space="preserve">
+    <value>Un proveedor o una política requerida no está configurado o está temporalmente indisponible.</value>
+  </data>
+  <data name="StaffInvitations_Accept_Description" xml:space="preserve">
+    <value>Comprueba el correo verificado, la invitación pendiente y los cupos actuales antes de activar la membresía. El registro de contraseña pertenece a IAM y queda fuera de esta operación.</value>
+  </data>
+  <data name="StaffInvitations_Accept_Summary" xml:space="preserve">
+    <value>Aceptar invitación del personal</value>
+  </data>
+  <data name="StaffInvitations_Cancel_Description" xml:space="preserve">
+    <value>Cancela una invitación pendiente y libera su reserva sin crear ni eliminar cuentas de identidad.</value>
+  </data>
+  <data name="StaffInvitations_Cancel_Summary" xml:space="preserve">
+    <value>Cancelar invitación del personal</value>
+  </data>
+  <data name="StaffInvitations_Resend_Description" xml:space="preserve">
+    <value>Programa un nuevo envío de correo para la misma invitación pendiente sin reservar otro cupo. Programado no significa entregado.</value>
+  </data>
+  <data name="StaffInvitations_Resend_Summary" xml:space="preserve">
+    <value>Reenviar invitación del personal</value>
+  </data>
+  <data name="StaffInvitations_Update_Description" xml:space="preserve">
+    <value>Actualiza los datos del destinatario de una invitación pendiente y conserva su cupo reservado.</value>
+  </data>
+  <data name="StaffInvitations_Update_Summary" xml:space="preserve">
+    <value>Actualizar invitación pendiente</value>
+  </data>
+  <data name="Subscriptions_Begin_Description" xml:space="preserve">
+    <value>Crea una intención de contratación PayPal Sandbox vinculada por el servidor al plan seleccionado. Esto no activa la suscripción.</value>
+  </data>
+  <data name="Subscriptions_Begin_Summary" xml:space="preserve">
+    <value>Preparar contratación de suscripción</value>
+  </data>
+  <data name="Subscriptions_Cancel_Description" xml:space="preserve">
+    <value>Solicita la cancelación al proveedor y conserva el derecho pagado verificado hasta que termine su periodo.</value>
+  </data>
+  <data name="Subscriptions_Cancel_Summary" xml:space="preserve">
+    <value>Cancelar renovación de suscripción</value>
+  </data>
+  <data name="Subscriptions_Change_Description" xml:space="preserve">
+    <value>Comprueba cupos activos y reservados y prepara la revisión de la suscripción PayPal existente. El plan local todavía no cambia.</value>
+  </data>
+  <data name="Subscriptions_Change_Summary" xml:space="preserve">
+    <value>Preparar cambio de plan</value>
+  </data>
+  <data name="Subscriptions_Get_Description" xml:space="preserve">
+    <value>Devuelve la suscripción del negocio o HTTP 204 si no existe. Requiere acceso de administrador del negocio.</value>
+  </data>
+  <data name="Subscriptions_Get_Summary" xml:space="preserve">
+    <value>Consultar suscripción actual</value>
+  </data>
+  <data name="Subscriptions_History_Description" xml:space="preserve">
+    <value>Devuelve transacciones registradas y confirmadas por el proveedor. Estos registros no son comprobantes fiscales ni datos de tarjetas almacenadas.</value>
+  </data>
+  <data name="Subscriptions_History_Summary" xml:space="preserve">
+    <value>Consultar historial de facturación</value>
+  </data>
+  <data name="Subscriptions_VerifyChange_Description" xml:space="preserve">
+    <value>Comprueba que la suscripción existente del proveedor corresponda al plan seleccionado antes de actualizar el derecho local.</value>
+  </data>
+  <data name="Subscriptions_VerifyChange_Summary" xml:space="preserve">
+    <value>Verificar cambio de plan</value>
+  </data>
+  <data name="Subscriptions_Verify_Description" xml:space="preserve">
+    <value>Comprueba suscripción del proveedor, correlación de contratación, plan y pago confirmado antes de conceder el plan local. La aprobación del navegador por sí sola es insuficiente.</value>
+  </data>
+  <data name="Subscriptions_Verify_Summary" xml:space="preserve">
+    <value>Verificar suscripción aprobada</value>
+  </data>
+  <data name="The {0} field is required." xml:space="preserve">
+    <value>El campo {0} es obligatorio.</value>
+  </data>
+  <data name="Field_isSimulated" xml:space="preserve">
+    <value>Verdadero para datos de prueba de desarrollo; no se verificó un pago con PayPal.</value>
   </data>
   <data name="BusinessTaxIdInvalid" xml:space="preserve">
     <value>Ingresa un RUC de once dígitos.</value>
@@ -35,7 +571,7 @@
     <value>Ingresa un nombre de negocio de hasta 150 caracteres.</value>
   </data>
   <data name="BusinessAddressInvalid" xml:space="preserve">
-    <value>Ingresa una dirección de hasta 250 caracteres.</value>
+    <value>Ingresa una dirección de negocio de hasta 250 caracteres.</value>
   </data>
   <data name="BusinessLatitudeInvalid" xml:space="preserve">
     <value>Selecciona una latitud entre -90 y 90.</value>
@@ -43,94 +579,7 @@
   <data name="BusinessLongitudeInvalid" xml:space="preserve">
     <value>Selecciona una longitud entre -180 y 180.</value>
   </data>
-  <data name="BusinessDetailsInvalid" xml:space="preserve">
-    <value>Revisa los datos obligatorios del comercio.</value>
-  </data>
-  <data name="BusinessTaxIdDuplicate" xml:space="preserve">
-    <value>Ya existe un comercio registrado con este RUC.</value>
-  </data>
-  <data name="BusinessTaxIdReadOnly" xml:space="preserve">
-    <value>El RUC registrado no se puede cambiar.</value>
-  </data>
-  <data name="BusinessUnauthenticated" xml:space="preserve">
-    <value>Se necesita una identidad de usuario aceptada.</value>
-  </data>
-  <data name="BusinessForbidden" xml:space="preserve">
-    <value>No tienes permiso para gestionar este comercio.</value>
-  </data>
-  <data name="BusinessNotFound" xml:space="preserve">
-    <value>El comercio no está disponible.</value>
-  </data>
-  <data name="BusinessResponseSuccess" xml:space="preserve">
-    <value>Se devolvieron los datos del comercio.</value>
-  </data>
-  <data name="BusinessResponseCreated" xml:space="preserve">
-    <value>Se registró el comercio. La cabecera Location identifica su recurso.</value>
-  </data>
-  <data name="BusinessResponseInvalid" xml:space="preserve">
-    <value>La respuesta de validación identifica los campos obligatorios o inválidos.</value>
-  </data>
-  <data name="BusinessResponseConflict" xml:space="preserve">
-    <value>Un RUC duplicado o no modificable impide completar la operación.</value>
-  </data>
-  <data name="GetBusinessesSummary" xml:space="preserve">
-    <value>Consultar mis comercios</value>
-  </data>
-  <data name="GetBusinessesDescription" xml:space="preserve">
-    <value>Devuelve los comercios del administrador aceptado. Una lista vacía es una respuesta correcta.</value>
-  </data>
-  <data name="GetBusinessByIdSummary" xml:space="preserve">
-    <value>Consultar el perfil de un comercio</value>
-  </data>
-  <data name="GetBusinessByIdDescription" xml:space="preserve">
-    <value>Devuelve un comercio del administrador aceptado. Los recursos no disponibles o ajenos devuelven 404.</value>
-  </data>
-  <data name="CreateBusinessSummary" xml:space="preserve">
-    <value>Registrar un comercio</value>
-  </data>
-  <data name="CreateBusinessDescription" xml:space="preserve">
-    <value>Registra un comercio con RUC único de once dígitos y ubicación guardada. El servidor asigna la propiedad y las fechas de auditoría.</value>
-  </data>
-  <data name="UpdateBusinessSummary" xml:space="preserve">
-    <value>Actualizar el perfil de un comercio</value>
-  </data>
-  <data name="UpdateBusinessDescription" xml:space="preserve">
-    <value>Actualiza el nombre, la dirección y las coordenadas del comercio. El RUC permanece sin cambios.</value>
-  </data>
-  <data name="BusinessCallerHeader" xml:space="preserve">
-    <value>Solo Development: ID de administrador sintético configurado. Esta cabecera se rechaza fuera de Development y no reemplaza la autenticación.</value>
-  </data>
-  <data name="BusinessResourceDescription" xml:space="preserve">
-    <value>Perfil de comercio guardado con ID público textual y fechas de auditoría del servidor.</value>
-  </data>
-  <data name="CreateBusinessResourceDescription" xml:space="preserve">
-    <value>Datos obligatorios de registro. El cliente no puede asignar al propietario ni las fechas de auditoría.</value>
-  </data>
-  <data name="UpdateBusinessResourceDescription" xml:space="preserve">
-    <value>Datos editables del comercio. Si se incluye el RUC, debe coincidir con el valor registrado.</value>
-  </data>
-  <data name="BusinessIdDescription" xml:space="preserve">
-    <value>Identificador público del comercio, representado como texto.</value>
-  </data>
-  <data name="BusinessTaxIdDescription" xml:space="preserve">
-    <value>Once dígitos almacenados como texto, incluidos los ceros iniciales.</value>
-  </data>
-  <data name="BusinessNameDescription" xml:space="preserve">
-    <value>Nombre del comercio, obligatorio, de hasta 150 caracteres.</value>
-  </data>
-  <data name="BusinessAddressDescription" xml:space="preserve">
-    <value>Dirección postal, obligatoria, de hasta 250 caracteres.</value>
-  </data>
-  <data name="BusinessLatitudeDescription" xml:space="preserve">
-    <value>Latitud guardada en grados, entre -90 y 90.</value>
-  </data>
-  <data name="BusinessLongitudeDescription" xml:space="preserve">
-    <value>Longitud guardada en grados, entre -180 y 180.</value>
-  </data>
-  <data name="BusinessCreatedAtDescription" xml:space="preserve">
-    <value>Fecha de creación UTC asignada por el servidor.</value>
-  </data>
-  <data name="BusinessUpdatedAtDescription" xml:space="preserve">
-    <value>Fecha de actualización UTC asignada por el servidor.</value>
-  </data>
+  <data name="Field_startDate" xml:space="preserve"><value>Fecha inicial inclusiva en America/Lima (YYYY-MM-DD).</value></data>
+  <data name="Field_endDate" xml:space="preserve"><value>Fecha final inclusiva en America/Lima; no puede ser futura.</value></data>
+  <data name="Field_cutoffAt" xml:space="preserve"><value>Instante de corte UTC autoritativo de la instantánea, excluyendo ese instante.</value></data>
 </root>

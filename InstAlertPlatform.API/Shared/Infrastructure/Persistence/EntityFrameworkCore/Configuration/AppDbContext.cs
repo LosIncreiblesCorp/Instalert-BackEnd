@@ -1,5 +1,6 @@
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
+using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.EntityFrameworkCore;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
@@ -8,11 +9,8 @@ namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFramewor
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    protected override void OnConfiguring(DbContextOptionsBuilder builder)
-    {
-        builder.AddInterceptors(new AuditableEntityInterceptor());
-        base.OnConfiguring(builder);
-    }
+    protected override void ConfigureConventions(ModelConfigurationBuilder builder) =>
+        builder.Properties<DateTimeOffset>().HaveConversion<UtcTimestampConverter>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -37,6 +35,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         business.Property(profile => profile.UpdatedAt).HasConversion<DateTime?>(
             value => value.HasValue ? value.Value.UtcDateTime : null,
             value => value.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)) : null);
+
+        var outbox = builder.Entity<OutboxMessage>();
+        outbox.ToTable("outbox_messages");
+        outbox.HasKey(x => x.Id);
+        outbox.Property(x => x.EventType).IsRequired().HasMaxLength(100);
+        outbox.Property(x => x.Payload).HasColumnType("longtext");
+        outbox.HasIndex(x => x.ProcessedAt);
 
         builder.UseSnakeCaseNamingConvention();
     }

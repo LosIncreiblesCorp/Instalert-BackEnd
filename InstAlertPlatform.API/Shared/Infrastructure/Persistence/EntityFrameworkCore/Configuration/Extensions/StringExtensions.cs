@@ -1,16 +1,15 @@
 using Humanizer;
 
 namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
-
 public static class StringExtensions
 {
     public static string ToSnakeCase(this string text)
     {
-        return new string(Convert(text.GetEnumerator()).ToArray());
-
+        return new string (Convert(text.GetEnumerator()).ToArray());
         static IEnumerable<char> Convert(CharEnumerator e)
         {
-            if (!e.MoveNext()) yield break;
+            if (!e.MoveNext())
+                yield break;
             yield return char.ToLower(e.Current);
             while (e.MoveNext())
                 if (char.IsUpper(e.Current))

@@ -1,7 +1,11 @@
+using System.Text.Json;
 using InstAlertPlatform.API.Resources;
+using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
+using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp;
 using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
+using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -17,9 +21,22 @@ using InstAlertPlatform.API.Business.Interfaces.Rest.Transform;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web)
+{
+    Converters = { new UtcIsoTimestampJsonConverter() }
+});
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentActor, HttpCurrentActor>();
+builder.Services.AddSingleton<AuditableEntityInterceptor>();
+
 builder.Services.AddLocalization();
 builder.Services.AddRouting(options => options.LowercaseUrls = false);
 builder.Services.AddControllers(options => options.Conventions.Add(new KebabCaseRouteNamingConvention()))
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new UtcIsoTimestampJsonConverter());
+    })
     .AddDataAnnotationsLocalization(options =>
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(SharedResource)))
     .ConfigureApiBehaviorOptions(options =>
@@ -41,6 +58,7 @@ builder.Services.AddControllers(options => options.Conventions.Add(new KebabCase
         };
     });
 
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails(options =>
 {
     options.CustomizeProblemDetails = context =>
@@ -68,10 +86,12 @@ builder.Services.AddDbContext<AppDbContext>((services, options) =>
 
     var connectionString = Environment.ExpandEnvironmentVariables(template);
     options.UseMySQL(connectionString)
+        .AddInterceptors(services.GetRequiredService<AuditableEntityInterceptor>())
         .UseLoggerFactory(services.GetRequiredService<ILoggerFactory>())
         .EnableDetailedErrors();
 });
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 builder.Services.AddScoped<IBusinessProfileRepository, BusinessProfileRepository>();
 builder.Services.AddScoped<IBusinessProfileCommandService, BusinessProfileCommandService>();
 builder.Services.AddScoped<IBusinessProfileQueryService, BusinessProfileQueryService>();

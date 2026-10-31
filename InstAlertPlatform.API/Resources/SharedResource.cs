@@ -1,5 +1,2 @@
 namespace InstAlertPlatform.API.Resources;
-
-public class SharedResource
-{
-}
+public sealed class SharedResource;
