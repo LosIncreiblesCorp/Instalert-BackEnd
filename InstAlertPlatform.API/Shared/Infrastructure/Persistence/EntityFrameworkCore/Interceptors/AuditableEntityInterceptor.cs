@@ -3,32 +3,41 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
-
-public sealed class AuditableEntityInterceptor : SaveChangesInterceptor
+public sealed class AuditableEntityInterceptor(TimeProvider clock) : SaveChangesInterceptor
 {
-    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    public override InterceptionResult<int> SavingChanges(DbContextEventData data, InterceptionResult<int> result)
     {
-        ApplyAuditTimestamps(eventData.Context);
-        return base.SavingChanges(eventData, result);
+        Apply(data.Context);
+        return result;
     }
 
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData data, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
-        ApplyAuditTimestamps(eventData.Context);
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
+        Apply(data.Context);
+        return ValueTask.FromResult(result);
     }
 
-    private static void ApplyAuditTimestamps(DbContext? context)
+    private void Apply(DbContext? context)
     {
-        if (context is null) return;
-
-        var now = DateTimeOffset.UtcNow;
-        now = now.AddTicks(-(now.Ticks % TimeSpan.TicksPerMicrosecond));
-
+        if (context is null)
+            return;
+        var now = clock.GetUtcNow();
         foreach (var entry in context.ChangeTracker.Entries<IAuditableEntity>())
         {
-            if (entry.State is EntityState.Added or EntityState.Modified) entry.Entity.UpdatedAt = now;
-            if (entry.State is EntityState.Added) entry.Entity.CreatedAt = now;
+            if (entry.State is not (EntityState.Added or EntityState.Modified))
+                continue;
+            entry.Entity.UpdatedAt = now;
+            if (entry.State == EntityState.Added)
+                entry.Entity.CreatedAt ??= now;
+            var version = entry.Metadata.FindProperty(nameof(AuditedEntity.Version));
+            if (version?.IsConcurrencyToken == true && version.ClrType == typeof(string))
+                entry.Property(version.Name).CurrentValue = Guid.NewGuid().ToString();
+            if (entry.State == EntityState.Modified)
+            {
+                var created = entry.Property(nameof(IAuditableEntity.CreatedAt));
+                created.CurrentValue = created.OriginalValue;
+                created.IsModified = false;
+            }
         }
     }
 }

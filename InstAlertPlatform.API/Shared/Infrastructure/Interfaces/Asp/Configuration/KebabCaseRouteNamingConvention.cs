@@ -2,14 +2,16 @@ using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration.E
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
-
 public class KebabCaseRouteNamingConvention : IControllerModelConvention
 {
     private static AttributeRouteModel? ReplaceControllerTemplate(SelectorModel selector, string name)
     {
-        return selector.AttributeRouteModel != null
-            ? new AttributeRouteModel { Template = selector.AttributeRouteModel.Template?.Replace("[controller]", name.ToKebabCase()) }
-            : null;
+        return selector.AttributeRouteModel != null ? new AttributeRouteModel(selector.AttributeRouteModel)
+        {
+            Template = selector.AttributeRouteModel.Template?.Replace("[controller]", name.ToKebabCase())
+        }
+
+        : null;
     }
 
     public void Apply(ControllerModel controller)
@@ -18,6 +20,5 @@ public class KebabCaseRouteNamingConvention : IControllerModelConvention
             selector.AttributeRouteModel = ReplaceControllerTemplate(selector, controller.ControllerName);
         foreach (var action in controller.Actions.SelectMany(a => a.Selectors))
             action.AttributeRouteModel = ReplaceControllerTemplate(action, controller.ControllerName);
-
     }
 }

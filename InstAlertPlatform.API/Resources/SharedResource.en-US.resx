@@ -1,32 +1,568 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
   <resheader name="version">
-    <value>1.3</value>
+    <value>2.0</value>
   </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
-            PublicKeyToken=b77a5c561934e089
-        </value>
-  </resheader>
-  <data name="UnexpectedServerError" xml:space="preserve">
-    <value>Unexpected server error</value>
+  <data name="Alerts_ChangePreferences_Description" xml:space="preserve">
+    <value>Updates the caller's supported panic countdown preference. This preference is owned by Alert, not Notifications.</value>
   </data>
-  <data name="UnexpectedErrorProcessingRequest" xml:space="preserve">
-    <value>An unexpected error occurred while processing your request.</value>
+  <data name="Alerts_ChangePreferences_Summary" xml:space="preserve">
+    <value>Change panic grace period</value>
+  </data>
+  <data name="Alerts_Complete_Description" xml:space="preserve">
+    <value>Finalizes a pending report associated with a resolved panic. Recompletion is rejected and the panic remains resolved.</value>
+  </data>
+  <data name="Alerts_Complete_Summary" xml:space="preserve">
+    <value>Complete panic report</value>
+  </data>
+  <data name="Alerts_Confirm_Description" xml:space="preserve">
+    <value>Confirms a valid preparation after its deadline and persists the active panic once. Notifications and geographical projections are processed through the outbox.</value>
+  </data>
+  <data name="Alerts_Confirm_Summary" xml:space="preserve">
+    <value>Confirm panic alert</value>
+  </data>
+  <data name="Alerts_Draft_Description" xml:space="preserve">
+    <value>Saves incident details only after the panic is resolved and while its report remains pending.</value>
+  </data>
+  <data name="Alerts_Draft_Summary" xml:space="preserve">
+    <value>Save panic report draft</value>
+  </data>
+  <data name="Alerts_Get_Description" xml:space="preserve">
+    <value>Returns one Alert-owned record after checking business access.</value>
+  </data>
+  <data name="Alerts_Get_Summary" xml:space="preserve">
+    <value>Get alert or report</value>
+  </data>
+  <data name="Alerts_List_Description" xml:space="preserve">
+    <value>Returns authorized business records with optional status filtering and pagination. Panic state and report completion state are independent.</value>
+  </data>
+  <data name="Alerts_List_Summary" xml:space="preserve">
+    <value>List alerts and reports</value>
+  </data>
+  <data name="Alerts_Location_Description" xml:space="preserve">
+    <value>The owner updates the location of an active panic; the new revision is projected to Mapping.</value>
+  </data>
+  <data name="Alerts_Location_Summary" xml:space="preserve">
+    <value>Update active panic location</value>
+  </data>
+  <data name="Alerts_Preferences_Description" xml:space="preserve">
+    <value>Returns the caller's panic grace-period preference.</value>
+  </data>
+  <data name="Alerts_Preferences_Summary" xml:space="preserve">
+    <value>Get panic preferences</value>
+  </data>
+  <data name="Alerts_Prepare_Description" xml:space="preserve">
+    <value>Issues a signed, expiring preparation proof and server deadline. No alert is persisted during the grace period.</value>
+  </data>
+  <data name="Alerts_Prepare_Summary" xml:space="preserve">
+    <value>Prepare panic countdown</value>
+  </data>
+  <data name="Alerts_Report_Description" xml:space="preserve">
+    <value>Creates a suspicious-activity, past-incident or risk-condition report. These reports do not trigger nearby active-panic notifications.</value>
+  </data>
+  <data name="Alerts_Report_Summary" xml:space="preserve">
+    <value>Submit incident report</value>
+  </data>
+  <data name="Alerts_Resolve_Description" xml:space="preserve">
+    <value>Marks the owner's panic as resolved without completing its report. Repeating resolution preserves the existing state.</value>
+  </data>
+  <data name="Alerts_Resolve_Summary" xml:space="preserve">
+    <value>Resolve panic alert</value>
+  </data>
+  <data name="BusinessMembers_Activate_Description" xml:space="preserve">
+    <value>Activates an operational membership after checking the current subscription capacity.</value>
+  </data>
+  <data name="BusinessMembers_Activate_Summary" xml:space="preserve">
+    <value>Activate membership</value>
+  </data>
+  <data name="BusinessMembers_Deactivate_Description" xml:space="preserve">
+    <value>Deactivates only this business membership and releases its seat. The global identity account remains unchanged.</value>
+  </data>
+  <data name="BusinessMembers_Deactivate_Summary" xml:space="preserve">
+    <value>Deactivate membership</value>
+  </data>
+  <data name="BusinessMembers_OwnMemberships_Description" xml:space="preserve">
+    <value>Returns the caller's active and inactive operational memberships so the application can explain unavailable business access.</value>
+  </data>
+  <data name="BusinessMembers_OwnMemberships_Summary" xml:space="preserve">
+    <value>Get own memberships</value>
+  </data>
+  <data name="BusinessMembers_Update_Description" xml:space="preserve">
+    <value>The administrator updates the employee's commercial membership details without changing the global identity account.</value>
+  </data>
+  <data name="BusinessMembers_Update_Summary" xml:space="preserve">
+    <value>Update personnel details</value>
+  </data>
+  <data name="Businesses_Create_Description" xml:space="preserve">
+    <value>Registers the business and its administrator membership. A duplicate tax identifier is rejected.</value>
+  </data>
+  <data name="Businesses_Create_Summary" xml:space="preserve">
+    <value>Register business</value>
+  </data>
+  <data name="Businesses_Get_Description" xml:space="preserve">
+    <value>Returns the profile of a business the caller can access.</value>
+  </data>
+  <data name="Businesses_Get_Summary" xml:space="preserve">
+    <value>Get business profile</value>
+  </data>
+  <data name="Businesses_Invitations_Description" xml:space="preserve">
+    <value>The administrator reads invitations and their current lifecycle states.</value>
+  </data>
+  <data name="Businesses_Invitations_Summary" xml:space="preserve">
+    <value>List staff invitations</value>
+  </data>
+  <data name="Businesses_Invite_Description" xml:space="preserve">
+    <value>Creates a pending invitation and reserves one available subscription seat. Email delivery is queued separately.</value>
+  </data>
+  <data name="Businesses_Invite_Summary" xml:space="preserve">
+    <value>Invite operational employee</value>
+  </data>
+  <data name="Businesses_List_Description" xml:space="preserve">
+    <value>Returns businesses administered by the caller or associated with an active operational membership.</value>
+  </data>
+  <data name="Businesses_List_Summary" xml:space="preserve">
+    <value>List accessible businesses</value>
+  </data>
+  <data name="Businesses_Members_Description" xml:space="preserve">
+    <value>The administrator reads the memberships belonging to this business.</value>
+  </data>
+  <data name="Businesses_Members_Summary" xml:space="preserve">
+    <value>List business personnel</value>
+  </data>
+  <data name="Businesses_Seats_Description" xml:space="preserve">
+    <value>Returns the active subscription limit, active operational memberships and pending invitation reservations. The administrator consumes no seat.</value>
+  </data>
+  <data name="Businesses_Seats_Summary" xml:space="preserve">
+    <value>Get employee capacity</value>
+  </data>
+  <data name="Businesses_Update_Description" xml:space="preserve">
+    <value>The administrator updates the business name, address and coordinates used by geographical projections.</value>
+  </data>
+  <data name="Businesses_Update_Summary" xml:space="preserve">
+    <value>Update business profile</value>
+  </data>
+  <data name="Dashboard_Current_Description" xml:space="preserve">
+    <value>Returns role-specific read projections for the current month using America/Lima boundaries. An accessible business without activity returns zero or empty indicators.</value>
+  </data>
+  <data name="Dashboard_Current_Summary" xml:space="preserve">
+    <value>Get current-month dashboard</value>
+  </data>
+  <data name="Dashboard_Generate_Description" xml:space="preserve">
+    <value>The administrator saves an immutable snapshot for inclusive dates in America/Lima. Future dates are rejected. The server calculates the cutoff and metrics. Generating again saves a separate report.</value>
+  </data>
+  <data name="Dashboard_Generate_Summary" xml:space="preserve">
+    <value>Generate a report for a date range</value>
+  </data>
+  <data name="Dashboard_Get_Description" xml:space="preserve">
+    <value>Reads a saved report by its opaque ID within the authorized business. Reading does not recalculate it.</value>
+  </data>
+  <data name="Dashboard_Get_Summary" xml:space="preserve">
+    <value>Get saved report</value>
+  </data>
+  <data name="Dashboard_List_Description" xml:space="preserve">
+    <value>The administrator reads saved date-range reports, newest first. Historical monthly snapshots remain available.</value>
+  </data>
+  <data name="Dashboard_List_Summary" xml:space="preserve">
+    <value>List saved reports</value>
+  </data>
+  <data name="EmergencyContacts_Create_Description" xml:space="preserve">
+    <value>Stores a validated contact for the operational employee. An email address is optional; contacts without one cannot receive emergency email.</value>
+  </data>
+  <data name="EmergencyContacts_Create_Summary" xml:space="preserve">
+    <value>Add emergency contact</value>
+  </data>
+  <data name="EmergencyContacts_Delete_Description" xml:space="preserve">
+    <value>Removes an owned contact and returns an empty success response.</value>
+  </data>
+  <data name="EmergencyContacts_Delete_Summary" xml:space="preserve">
+    <value>Delete emergency contact</value>
+  </data>
+  <data name="EmergencyContacts_Get_Description" xml:space="preserve">
+    <value>Returns an owned contact; a different user's contact is not disclosed.</value>
+  </data>
+  <data name="EmergencyContacts_Get_Summary" xml:space="preserve">
+    <value>Get emergency contact</value>
+  </data>
+  <data name="EmergencyContacts_List_Description" xml:space="preserve">
+    <value>Returns emergency contacts owned by the operational employee.</value>
+  </data>
+  <data name="EmergencyContacts_List_Summary" xml:space="preserve">
+    <value>List emergency contacts</value>
+  </data>
+  <data name="EmergencyContacts_Update_Description" xml:space="preserve">
+    <value>Updates an owned contact's personal contact details after validation.</value>
+  </data>
+  <data name="EmergencyContacts_Update_Summary" xml:space="preserve">
+    <value>Update emergency contact</value>
+  </data>
+  <data name="ErrorDetail400" xml:space="preserve">
+    <value>Check the submitted values.</value>
+  </data>
+  <data name="ErrorDetail401" xml:space="preserve">
+    <value>A valid caller identity is required.</value>
+  </data>
+  <data name="ErrorDetail403" xml:space="preserve">
+    <value>You do not have permission to access this resource.</value>
+  </data>
+  <data name="ErrorDetail404" xml:space="preserve">
+    <value>The resource is unavailable.</value>
+  </data>
+  <data name="ErrorDetail409" xml:space="preserve">
+    <value>The current state prevents this operation. Refresh the resource.</value>
+  </data>
+  <data name="ErrorDetail500" xml:space="preserve">
+    <value>An internal error occurred.</value>
+  </data>
+  <data name="ErrorDetail503" xml:space="preserve">
+    <value>The required integration is not configured or available.</value>
+  </data>
+  <data name="Field_activeEmployees" xml:space="preserve">
+    <value>Active operational memberships consuming subscription seats.</value>
+  </data>
+  <data name="Field_address" xml:space="preserve">
+    <value>Human-readable business street address.</value>
+  </data>
+  <data name="Field_amount" xml:space="preserve">
+    <value>Decimal monetary amount in the stated currency.</value>
+  </data>
+  <data name="Field_availableSeats" xml:space="preserve">
+    <value>Remaining capacity after active operational memberships and pending invitations.</value>
+  </data>
+  <data name="Field_businessId" xml:space="preserve">
+    <value>Identifier of the business defining the resource scope.</value>
+  </data>
+  <data name="Field_cancelAtPeriodEnd" xml:space="preserve">
+    <value>Whether renewal is cancelled while the currently verified paid period remains valid.</value>
+  </data>
+  <data name="Field_checkoutId" xml:space="preserve">
+    <value>Server-generated identifier correlating this approval with the business and selected plan.</value>
+  </data>
+  <data name="Field_code" xml:space="preserve">
+    <value>Stable machine-readable error reason; it does not change with the response language.</value>
+  </data>
+  <data name="Field_createdAt" xml:space="preserve">
+    <value>UTC timestamp at which the record was created.</value>
+  </data>
+  <data name="Field_currency" xml:space="preserve">
+    <value>ISO currency code associated with the monetary amount.</value>
+  </data>
+  <data name="Field_customId" xml:space="preserve">
+    <value>Server correlation value that must be attached to the new PayPal subscription.</value>
+  </data>
+  <data name="Field_dni" xml:space="preserve">
+    <value>Exactly eight digits stored as text, preserving initial zeroes.</value>
+  </data>
+  <data name="Field_email" xml:space="preserve">
+    <value>Contact email address; its use and optionality depend on the resource.</value>
+  </data>
+  <data name="Field_employeeId" xml:space="preserve">
+    <value>Identifier of the operational employee associated with this record.</value>
+  </data>
+  <data name="Field_expiresAt" xml:space="preserve">
+    <value>UTC instant after which this temporary resource or proof is no longer accepted.</value>
+  </data>
+  <data name="Field_id" xml:space="preserve">
+    <value>Stable resource identifier.</value>
+  </data>
+  <data name="Field_incidentCount" xml:space="preserve">
+    <value>Number of distinct qualifying incidents in the cell classification window.</value>
+  </data>
+  <data name="Field_latitude" xml:space="preserve">
+    <value>Latitude in decimal degrees, from -90 to 90; paired with longitude.</value>
+  </data>
+  <data name="Field_locale" xml:space="preserve">
+    <value>General language preference: en_US or es_419.</value>
+  </data>
+  <data name="Field_location" xml:space="preserve">
+    <value>Human-readable incident location accompanying its coordinates.</value>
+  </data>
+  <data name="Field_longitude" xml:space="preserve">
+    <value>Longitude in decimal degrees, from -180 to 180; paired with latitude.</value>
+  </data>
+  <data name="Field_maxEmployees" xml:space="preserve">
+    <value>Maximum active operational memberships plus pending invitations admitted by the plan; administrators consume no seat.</value>
+  </data>
+  <data name="Field_month" xml:space="preserve">
+    <value>Calendar month in yyyy-MM format using the America/Lima reporting calendar.</value>
+  </data>
+  <data name="Field_nearbyAlertsEnabled" xml:space="preserve">
+    <value>Whether newly confirmed nearby active panics may produce inbox notifications for this recipient.</value>
+  </data>
+  <data name="Field_nearbyRadiusMeters" xml:space="preserve">
+    <value>Reception radius of 100, 500 or 1000 metres from the saved business coordinates.</value>
+  </data>
+  <data name="Field_notBefore" xml:space="preserve">
+    <value>UTC instant before which the server rejects panic confirmation.</value>
+  </data>
+  <data name="Field_panicGracePeriodSeconds" xml:space="preserve">
+    <value>Configured server-enforced grace period before a panic can be confirmed, in seconds.</value>
+  </data>
+  <data name="Field_phone" xml:space="preserve">
+    <value>Contact telephone number represented as text.</value>
+  </data>
+  <data name="Field_preparationToken" xml:space="preserve">
+    <value>Signed temporary proof returned by panic preparation; it is not an authentication token.</value>
+  </data>
+  <data name="Field_radiusMeters" xml:space="preserve">
+    <value>Search radius in metres from the saved business coordinates.</value>
+  </data>
+  <data name="Field_readAt" xml:space="preserve">
+    <value>UTC instant when the recipient read the notification; null means unread.</value>
+  </data>
+  <data name="Field_reportStatus" xml:space="preserve">
+    <value>Completion state of the associated report, independent of the panic resolution state.</value>
+  </data>
+  <data name="Field_reservedSeats" xml:space="preserve">
+    <value>Seats reserved by pending invitations.</value>
+  </data>
+  <data name="Field_resolvedAt" xml:space="preserve">
+    <value>UTC instant when the panic was resolved; null until resolution.</value>
+  </data>
+  <data name="Field_riskLevel" xml:space="preserve">
+    <value>Thirty-day incident-count classification: low 1–5, medium 6–14, high 15 or more.</value>
+  </data>
+  <data name="Field_sentAt" xml:space="preserve">
+    <value>UTC instant of provider acceptance; this does not prove reception or reading.</value>
+  </data>
+  <data name="Field_sourceAlertId" xml:space="preserve">
+    <value>Identifier of the authoritative Alert record from which this projection or notification originates.</value>
+  </data>
+  <data name="Field_subscriptionId" xml:space="preserve">
+    <value>Provider or subscription resource identifier required by this payment operation.</value>
+  </data>
+  <data name="Field_summary" xml:space="preserve">
+    <value>Saved role-specific indicator projection for the stated reporting period.</value>
+  </data>
+  <data name="Field_taxId" xml:space="preserve">
+    <value>Eleven-digit business tax identifier stored as text.</value>
+  </data>
+  <data name="Field_updatedAt" xml:space="preserve">
+    <value>UTC timestamp of the latest stored modification.</value>
+  </data>
+  <data name="Field_userId" xml:space="preserve">
+    <value>Identifier of the person who owns this record.</value>
+  </data>
+  <data name="Field_version" xml:space="preserve">
+    <value>Opaque optimistic-concurrency revision of the stored resource.</value>
+  </data>
+  <data name="HealthLiveSummary" xml:space="preserve">
+    <value>Check process liveness</value>
+  </data>
+  <data name="HealthReadySummary" xml:space="preserve">
+    <value>Check database readiness</value>
   </data>
   <data name="InvalidModelStateTitle" xml:space="preserve">
-    <value>The request contains invalid values.</value>
+    <value>Check the submitted values.</value>
   </data>
-  <data name="BusinessRequestFailed" xml:space="preserve">
-    <value>The business request could not be completed.</value>
+  <data name="Mapping_ActiveAlerts_Description" xml:space="preserve">
+    <value>Returns visible, geolocated active panic projections within the requested radius of the business.</value>
+  </data>
+  <data name="Mapping_ActiveAlerts_Summary" xml:space="preserve">
+    <value>Get mapped active panics</value>
+  </data>
+  <data name="Mapping_Businesses_Description" xml:space="preserve">
+    <value>Returns registered businesses with valid coordinates inside the query radius. Verification is not required for visibility.</value>
+  </data>
+  <data name="Mapping_Businesses_Summary" xml:space="preserve">
+    <value>Get mapped businesses</value>
+  </data>
+  <data name="Mapping_Incident_Description" xml:space="preserve">
+    <value>Returns a currently visible incident projection within the authorised business query radius, or not found if it is unavailable.</value>
+  </data>
+  <data name="Mapping_Incident_Summary" xml:space="preserve">
+    <value>Get mapped incident detail</value>
+  </data>
+  <data name="Mapping_Incidents_Description" xml:space="preserve">
+    <value>Returns active panics and eligible published reports near the business, with optional category and registration-time filters.</value>
+  </data>
+  <data name="Mapping_Incidents_Summary" xml:space="preserve">
+    <value>Find mapped incidents</value>
+  </data>
+  <data name="Mapping_Zone_Description" xml:space="preserve">
+    <value>Returns one available risk cell and its incident projection details for the requested geographical scope.</value>
+  </data>
+  <data name="Mapping_Zone_Summary" xml:space="preserve">
+    <value>Get risk cell detail</value>
+  </data>
+  <data name="Mapping_Zones_Description" xml:space="preserve">
+    <value>Returns visible cells classified over the preceding 30 days: low 1–5, medium 6–14, high 15 or more. Display filters do not recalculate this classification window.</value>
+  </data>
+  <data name="Mapping_Zones_Summary" xml:space="preserve">
+    <value>Get risk concentration cells</value>
+  </data>
+  <data name="Notifications_Deliveries_Description" xml:space="preserve">
+    <value>Returns delivery attempts and states associated with the caller. Provider acceptance is not proof of reception or reading.</value>
+  </data>
+  <data name="Notifications_Deliveries_Summary" xml:space="preserve">
+    <value>Get delivery statuses</value>
+  </data>
+  <data name="Notifications_List_Description" xml:space="preserve">
+    <value>Returns the caller's business-scoped inbox, newest first, with pagination. The frontend polls this inbox while visible.</value>
+  </data>
+  <data name="Notifications_List_Summary" xml:space="preserve">
+    <value>Get received notifications</value>
+  </data>
+  <data name="Notifications_Preferences_Description" xml:space="preserve">
+    <value>Returns the caller's nearby-active-panic preference and reception radius for this business.</value>
+  </data>
+  <data name="Notifications_Preferences_Summary" xml:space="preserve">
+    <value>Get notification preferences</value>
+  </data>
+  <data name="Notifications_Read_Description" xml:space="preserve">
+    <value>Sets the reading state of a notification owned by the caller without altering its source alert.</value>
+  </data>
+  <data name="Notifications_Read_Summary" xml:space="preserve">
+    <value>Mark notification as read</value>
+  </data>
+  <data name="Notifications_Update_Description" xml:space="preserve">
+    <value>Saves nearby-active-panic delivery preference and a radius of 100, 500 or 1000 metres measured from the saved business location.</value>
+  </data>
+  <data name="Notifications_Update_Summary" xml:space="preserve">
+    <value>Change notification preferences</value>
+  </data>
+  <data name="PayPalWebhook_Receive_Description" xml:space="preserve">
+    <value>Verifies the PayPal signature and reconciles supported subscription or payment events idempotently. This endpoint is called by PayPal, not by the frontend.</value>
+  </data>
+  <data name="PayPalWebhook_Receive_Summary" xml:space="preserve">
+    <value>Receive PayPal event</value>
+  </data>
+  <data name="Plans_Get_Description" xml:space="preserve">
+    <value>Returns the monthly plan catalogue, currency, price and operational employee limit.</value>
+  </data>
+  <data name="Plans_Get_Summary" xml:space="preserve">
+    <value>List monthly plans</value>
+  </data>
+  <data name="Profiles_Get_Description" xml:space="preserve">
+    <value>Returns the caller's personal data. A different user's profile cannot be read.</value>
+  </data>
+  <data name="Profiles_Get_Summary" xml:space="preserve">
+    <value>Get personal profile</value>
+  </data>
+  <data name="Profiles_Locale_Description" xml:space="preserve">
+    <value>Saves en_US or es_419 as the caller's general language preference.</value>
+  </data>
+  <data name="Profiles_Locale_Summary" xml:space="preserve">
+    <value>Change application language</value>
+  </data>
+  <data name="Profiles_Preferences_Description" xml:space="preserve">
+    <value>Returns the caller's application language preference.</value>
+  </data>
+  <data name="Profiles_Preferences_Summary" xml:space="preserve">
+    <value>Get general preferences</value>
+  </data>
+  <data name="Profiles_Update_Description" xml:space="preserve">
+    <value>Updates names, the eight-digit textual DNI and optional phone. Credentials are not modified.</value>
+  </data>
+  <data name="Profiles_Update_Summary" xml:space="preserve">
+    <value>Update personal profile</value>
+  </data>
+  <data name="RequestFailedTitle" xml:space="preserve">
+    <value>The request could not be completed.</value>
+  </data>
+  <data name="Response200" xml:space="preserve">
+    <value>The operation succeeded and returns its documented representation.</value>
+  </data>
+  <data name="Response201" xml:space="preserve">
+    <value>The resource was created. Location identifies the created resource.</value>
+  </data>
+  <data name="Response204" xml:space="preserve">
+    <value>The operation succeeded with no response body.</value>
+  </data>
+  <data name="Response400" xml:space="preserve">
+    <value>The request contains missing or invalid values.</value>
+  </data>
+  <data name="Response401" xml:space="preserve">
+    <value>No accepted caller identity was supplied.</value>
+  </data>
+  <data name="Response403" xml:space="preserve">
+    <value>The caller lacks the required access or resource ownership.</value>
+  </data>
+  <data name="Response404" xml:space="preserve">
+    <value>The requested resource is not available within the authorised scope.</value>
+  </data>
+  <data name="Response409" xml:space="preserve">
+    <value>A duplicate, concurrent modification, capacity rule or invalid state prevents the operation. Inspect code for the specific reason.</value>
+  </data>
+  <data name="Response500" xml:space="preserve">
+    <value>An unexpected server or persistence failure occurred. Internal details are not disclosed.</value>
+  </data>
+  <data name="Response503" xml:space="preserve">
+    <value>A required provider or policy is not configured or is temporarily unavailable.</value>
+  </data>
+  <data name="StaffInvitations_Accept_Description" xml:space="preserve">
+    <value>Checks the caller's verified email, pending invitation and current capacity before activating the membership. Password registration belongs to IAM and is outside this operation.</value>
+  </data>
+  <data name="StaffInvitations_Accept_Summary" xml:space="preserve">
+    <value>Accept staff invitation</value>
+  </data>
+  <data name="StaffInvitations_Cancel_Description" xml:space="preserve">
+    <value>Cancels a pending invitation and releases its reservation without creating or removing identity accounts.</value>
+  </data>
+  <data name="StaffInvitations_Cancel_Summary" xml:space="preserve">
+    <value>Cancel staff invitation</value>
+  </data>
+  <data name="StaffInvitations_Resend_Description" xml:space="preserve">
+    <value>Queues a new email delivery for the same pending invitation without reserving another seat. Queued does not mean delivered.</value>
+  </data>
+  <data name="StaffInvitations_Resend_Summary" xml:space="preserve">
+    <value>Resend staff invitation</value>
+  </data>
+  <data name="StaffInvitations_Update_Description" xml:space="preserve">
+    <value>Updates the recipient details of a pending invitation while preserving its reserved seat.</value>
+  </data>
+  <data name="StaffInvitations_Update_Summary" xml:space="preserve">
+    <value>Update pending invitation</value>
+  </data>
+  <data name="Subscriptions_Begin_Description" xml:space="preserve">
+    <value>Creates a server-correlated PayPal Sandbox checkout intent for the selected plan. This does not activate the subscription.</value>
+  </data>
+  <data name="Subscriptions_Begin_Summary" xml:space="preserve">
+    <value>Prepare subscription checkout</value>
+  </data>
+  <data name="Subscriptions_Cancel_Description" xml:space="preserve">
+    <value>Requests provider cancellation while preserving the verified paid entitlement until its period ends.</value>
+  </data>
+  <data name="Subscriptions_Cancel_Summary" xml:space="preserve">
+    <value>Cancel subscription renewal</value>
+  </data>
+  <data name="Subscriptions_Change_Description" xml:space="preserve">
+    <value>Checks reserved and active employee seats and prepares revision of the existing PayPal subscription. The local plan does not change yet.</value>
+  </data>
+  <data name="Subscriptions_Change_Summary" xml:space="preserve">
+    <value>Prepare subscription plan change</value>
+  </data>
+  <data name="Subscriptions_Get_Description" xml:space="preserve">
+    <value>Returns the business subscription or HTTP 204 when none exists. Requires business administrator access.</value>
+  </data>
+  <data name="Subscriptions_Get_Summary" xml:space="preserve">
+    <value>Get current subscription</value>
+  </data>
+  <data name="Subscriptions_History_Description" xml:space="preserve">
+    <value>Returns recorded provider-confirmed transactions. These records are not tax invoices or stored card data.</value>
+  </data>
+  <data name="Subscriptions_History_Summary" xml:space="preserve">
+    <value>Get billing history</value>
+  </data>
+  <data name="Subscriptions_VerifyChange_Description" xml:space="preserve">
+    <value>Checks that the provider's existing subscription now matches the selected plan before updating local entitlement.</value>
+  </data>
+  <data name="Subscriptions_VerifyChange_Summary" xml:space="preserve">
+    <value>Verify subscription plan change</value>
+  </data>
+  <data name="Subscriptions_Verify_Description" xml:space="preserve">
+    <value>Checks provider subscription, checkout correlation, target plan and confirmed payment before granting local entitlement. Browser approval alone is insufficient.</value>
+  </data>
+  <data name="Subscriptions_Verify_Summary" xml:space="preserve">
+    <value>Verify approved subscription</value>
+  </data>
+  <data name="The {0} field is required." xml:space="preserve">
+    <value>The {0} field is required.</value>
+  </data>
+  <data name="Field_isSimulated" xml:space="preserve">
+    <value>True for a development fixture; no payment was verified with PayPal.</value>
   </data>
   <data name="BusinessTaxIdInvalid" xml:space="preserve">
     <value>Enter an eleven-digit tax identifier.</value>
@@ -35,7 +571,7 @@
     <value>Enter a business name with no more than 150 characters.</value>
   </data>
   <data name="BusinessAddressInvalid" xml:space="preserve">
-    <value>Enter an address with no more than 250 characters.</value>
+    <value>Enter a business address with no more than 250 characters.</value>
   </data>
   <data name="BusinessLatitudeInvalid" xml:space="preserve">
     <value>Select a latitude between -90 and 90.</value>
@@ -43,94 +579,7 @@
   <data name="BusinessLongitudeInvalid" xml:space="preserve">
     <value>Select a longitude between -180 and 180.</value>
   </data>
-  <data name="BusinessDetailsInvalid" xml:space="preserve">
-    <value>Review the required business details.</value>
-  </data>
-  <data name="BusinessTaxIdDuplicate" xml:space="preserve">
-    <value>A business with this tax identifier is already registered.</value>
-  </data>
-  <data name="BusinessTaxIdReadOnly" xml:space="preserve">
-    <value>The registered tax identifier cannot be changed.</value>
-  </data>
-  <data name="BusinessUnauthenticated" xml:space="preserve">
-    <value>An accepted user identity is required.</value>
-  </data>
-  <data name="BusinessForbidden" xml:space="preserve">
-    <value>You cannot manage this business.</value>
-  </data>
-  <data name="BusinessNotFound" xml:space="preserve">
-    <value>The business is not available.</value>
-  </data>
-  <data name="BusinessResponseSuccess" xml:space="preserve">
-    <value>The business data was returned.</value>
-  </data>
-  <data name="BusinessResponseCreated" xml:space="preserve">
-    <value>The business was registered. The Location header identifies its resource.</value>
-  </data>
-  <data name="BusinessResponseInvalid" xml:space="preserve">
-    <value>Required or invalid fields are identified in the validation response.</value>
-  </data>
-  <data name="BusinessResponseConflict" xml:space="preserve">
-    <value>A duplicate or immutable tax identifier prevents the operation.</value>
-  </data>
-  <data name="GetBusinessesSummary" xml:space="preserve">
-    <value>List my businesses</value>
-  </data>
-  <data name="GetBusinessesDescription" xml:space="preserve">
-    <value>Return the businesses owned by the accepted administrator. An empty list is a successful response.</value>
-  </data>
-  <data name="GetBusinessByIdSummary" xml:space="preserve">
-    <value>Get a business profile</value>
-  </data>
-  <data name="GetBusinessByIdDescription" xml:space="preserve">
-    <value>Return a business owned by the accepted administrator. Unavailable and foreign resources return 404.</value>
-  </data>
-  <data name="CreateBusinessSummary" xml:space="preserve">
-    <value>Register a business</value>
-  </data>
-  <data name="CreateBusinessDescription" xml:space="preserve">
-    <value>Register a business with a unique eleven-digit tax identifier and a saved location. Ownership and audit dates are assigned by the server.</value>
-  </data>
-  <data name="UpdateBusinessSummary" xml:space="preserve">
-    <value>Update a business profile</value>
-  </data>
-  <data name="UpdateBusinessDescription" xml:space="preserve">
-    <value>Update the business name, address and coordinates. The tax identifier remains unchanged.</value>
-  </data>
-  <data name="BusinessCallerHeader" xml:space="preserve">
-    <value>Development only: a configured synthetic administrator ID. This header is rejected outside Development and does not replace authentication.</value>
-  </data>
-  <data name="BusinessResourceDescription" xml:space="preserve">
-    <value>Saved business profile with a textual public ID and server audit dates.</value>
-  </data>
-  <data name="CreateBusinessResourceDescription" xml:space="preserve">
-    <value>Required registration details. The client cannot assign the owner or audit dates.</value>
-  </data>
-  <data name="UpdateBusinessResourceDescription" xml:space="preserve">
-    <value>Editable business data. A supplied tax identifier must match the registered value.</value>
-  </data>
-  <data name="BusinessIdDescription" xml:space="preserve">
-    <value>Public business identifier, represented as text.</value>
-  </data>
-  <data name="BusinessTaxIdDescription" xml:space="preserve">
-    <value>Eleven digits stored as text, including initial zeroes.</value>
-  </data>
-  <data name="BusinessNameDescription" xml:space="preserve">
-    <value>Business name, required, up to 150 characters.</value>
-  </data>
-  <data name="BusinessAddressDescription" xml:space="preserve">
-    <value>Street address, required, up to 250 characters.</value>
-  </data>
-  <data name="BusinessLatitudeDescription" xml:space="preserve">
-    <value>Saved latitude in degrees, between -90 and 90.</value>
-  </data>
-  <data name="BusinessLongitudeDescription" xml:space="preserve">
-    <value>Saved longitude in degrees, between -180 and 180.</value>
-  </data>
-  <data name="BusinessCreatedAtDescription" xml:space="preserve">
-    <value>UTC creation time assigned by the server.</value>
-  </data>
-  <data name="BusinessUpdatedAtDescription" xml:space="preserve">
-    <value>UTC update time assigned by the server.</value>
-  </data>
+  <data name="Field_startDate" xml:space="preserve"><value>Inclusive start date in America/Lima (YYYY-MM-DD).</value></data>
+  <data name="Field_endDate" xml:space="preserve"><value>Inclusive end date in America/Lima; must not be in the future.</value></data>
+  <data name="Field_cutoffAt" xml:space="preserve"><value>Authoritative UTC cutoff of the saved snapshot, excluding this instant.</value></data>
 </root>
