@@ -18,6 +18,11 @@ using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Repositories;
 using InstAlertPlatform.API.Business.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using InstAlertPlatform.API.Business.Interfaces.Rest.Transform;
+using InstAlertPlatform.API.Profiles.Application.Internal.CommandServices;
+using InstAlertPlatform.API.Profiles.Application.Internal.QueryServices;
+using InstAlertPlatform.API.Profiles.Application.Services;
+using InstAlertPlatform.API.Profiles.Domain.Repositories;
+using InstAlertPlatform.API.Profiles.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,6 +81,7 @@ builder.Services.AddProblemDetails(options =>
 builder.Services.AddOpenApi(options =>
 {
     options.AddOperationTransformer(LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddSchemaTransformer(LocalizedOpenApiAssembler.TransformSchemaAsync);
 });
 builder.Services.AddDbContext<AppDbContext>((services, options) =>
@@ -95,6 +101,10 @@ builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 builder.Services.AddScoped<IBusinessProfileRepository, BusinessProfileRepository>();
 builder.Services.AddScoped<IBusinessProfileCommandService, BusinessProfileCommandService>();
 builder.Services.AddScoped<IBusinessProfileQueryService, BusinessProfileQueryService>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
+builder.Services.AddScoped<IProfileCommandService, ProfileCommandService>();
+builder.Services.AddScoped<IProfileQueryService, ProfileQueryService>();
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
     var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
