@@ -4,6 +4,8 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.EntityFrameworkCore;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
+using InstAlertPlatform.API.Profiles.Domain.Model.Aggregates;
+using InstAlertPlatform.API.Profiles.Domain.Model.ValueObjects;
 
 namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 
@@ -42,6 +44,27 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         outbox.Property(x => x.EventType).IsRequired().HasMaxLength(100);
         outbox.Property(x => x.Payload).HasColumnType("longtext");
         outbox.HasIndex(x => x.ProcessedAt);
+
+        var profile = builder.Entity<UserProfile>();
+        profile.ToTable("profiles");
+        profile.HasKey(x => x.Id);
+        profile.Property(x => x.Id).IsRequired().HasMaxLength(80);
+        profile.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        profile.Property(x => x.FirstName).IsRequired().HasMaxLength(100);
+        profile.Property(x => x.LastName).IsRequired().HasMaxLength(100);
+        profile.Property(x => x.Dni)
+            .HasConversion(value => value.Value, value => new NationalIdentityNumber(value))
+            .IsRequired().HasMaxLength(8);
+        profile.Property(x => x.Phone).HasMaxLength(16);
+
+        var preferences = builder.Entity<UserPreferences>();
+        preferences.ToTable("user_preferences");
+        preferences.HasKey(x => x.Id);
+        preferences.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        preferences.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        preferences.Property(x => x.Locale)
+            .HasConversion(value => value.Value, value => new ApplicationLocale(value))
+            .IsRequired().HasMaxLength(6);
 
         builder.UseSnakeCaseNamingConvention();
     }
