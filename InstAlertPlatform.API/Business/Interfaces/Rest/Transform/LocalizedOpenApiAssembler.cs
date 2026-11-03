@@ -10,6 +10,17 @@ namespace InstAlertPlatform.API.Business.Interfaces.Rest.Transform;
 
 public static class LocalizedOpenApiAssembler
 {
+    private static readonly IReadOnlyDictionary<string, string> OperationResources = new Dictionary<string, string>
+    {
+        ["GetBusinesses"] = "Businesses_List",
+        ["GetBusinessById"] = "Businesses_Get",
+        ["CreateBusiness"] = "Businesses_Create",
+        ["UpdateBusiness"] = "Businesses_Update",
+        ["GetBusinessSeats"] = "Businesses_Seats",
+        ["GetBusinessMembers"] = "Businesses_Members",
+        ["GetStaffInvitations"] = "Businesses_Invitations"
+    };
+
     private static readonly IReadOnlyDictionary<string, string> ResponseResources = new Dictionary<string, string>
     {
         ["200"] = "BusinessResponseSuccess",
@@ -29,10 +40,13 @@ public static class LocalizedOpenApiAssembler
             action.ControllerTypeInfo.AsType() != typeof(BusinessesController))
             return Task.CompletedTask;
 
+        if (!OperationResources.TryGetValue(action.ActionName, out var resourceKey))
+            return Task.CompletedTask;
+
         var localizer = context.ApplicationServices.GetRequiredService<IStringLocalizer<SharedResource>>();
-        operation.OperationId = action.ActionName;
-        operation.Summary = localizer[action.ActionName + "Summary"].Value;
-        operation.Description = localizer[action.ActionName + "Description"].Value;
+        operation.OperationId = resourceKey.Replace('_', '.');
+        operation.Summary = localizer[resourceKey + "_Summary"].Value;
+        operation.Description = localizer[resourceKey + "_Description"].Value;
         if (operation.Parameters is not null)
             foreach (var parameter in operation.Parameters)
                 if (parameter is OpenApiParameter header && header.Name == "User-Id")

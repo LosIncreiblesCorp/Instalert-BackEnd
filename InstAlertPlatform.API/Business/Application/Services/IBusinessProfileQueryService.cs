@@ -10,4 +10,10 @@ public interface IBusinessProfileQueryService
 
     Task<BusinessProfile?> Handle(GetBusinessProfileByIdQuery query,
         CancellationToken cancellationToken = default);
+
+    Task<List<BusinessProfile>> Handle(GetBusinessesQuery query, CancellationToken cancellationToken = default);
+
+    Task<BusinessProfile> Handle(RequireBusinessAccessQuery query, CancellationToken cancellationToken = default);
+
+    Task<SeatSnapshot> Handle(GetBusinessSeatsQuery query, CancellationToken cancellationToken = default);
 }
