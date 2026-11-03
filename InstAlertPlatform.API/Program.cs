@@ -23,6 +23,10 @@ using InstAlertPlatform.API.Profiles.Application.Internal.QueryServices;
 using InstAlertPlatform.API.Profiles.Application.Services;
 using InstAlertPlatform.API.Profiles.Domain.Repositories;
 using InstAlertPlatform.API.Profiles.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using InstAlertPlatform.API.Payments.Application.Internal.QueryServices;
+using InstAlertPlatform.API.Payments.Application.Services;
+using InstAlertPlatform.API.Payments.Domain.Repositories;
+using InstAlertPlatform.API.Payments.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +86,7 @@ builder.Services.AddOpenApi(options =>
 {
     options.AddOperationTransformer(LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddSchemaTransformer(LocalizedOpenApiAssembler.TransformSchemaAsync);
 });
 builder.Services.AddDbContext<AppDbContext>((services, options) =>
@@ -105,6 +110,9 @@ builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 builder.Services.AddScoped<IProfileCommandService, ProfileCommandService>();
 builder.Services.AddScoped<IProfileQueryService, ProfileQueryService>();
+builder.Services.AddScoped<IPlanRepository, PlanRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
     var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
