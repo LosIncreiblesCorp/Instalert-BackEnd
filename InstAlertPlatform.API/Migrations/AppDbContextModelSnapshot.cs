@@ -79,6 +79,177 @@ namespace InstAlertPlatform.API.Migrations
                     b.ToTable("business_profiles");
                 });
 
+            modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Plan", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BillingCycle")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("billing_cycle");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("varchar(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<int>("MaxEmployees")
+                        .HasColumnType("int")
+                        .HasColumnName("max_employees");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("price");
+
+                    b.Property<string>("ProviderPlanId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("provider_plan_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_plans");
+
+                    b.HasIndex("ProviderPlanId")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_plans_provider_plan_id");
+
+                    b.ToTable("plans", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "essential",
+                            BillingCycle = "monthly",
+                            Currency = "USD",
+                            MaxEmployees = 4,
+                            Name = "Essential",
+                            Price = 15m,
+                            ProviderPlanId = "P-9G467950ML2745201NLOCKGI",
+                            Version = "catalog-v1"
+                        },
+                        new
+                        {
+                            Id = "professional",
+                            BillingCycle = "monthly",
+                            Currency = "USD",
+                            MaxEmployees = 8,
+                            Name = "Professional",
+                            Price = 30m,
+                            ProviderPlanId = "P-66N5798614080793BNLOCKNY",
+                            Version = "catalog-v1"
+                        },
+                        new
+                        {
+                            Id = "business",
+                            BillingCycle = "monthly",
+                            Currency = "USD",
+                            MaxEmployees = 15,
+                            Name = "Business",
+                            Price = 45m,
+                            ProviderPlanId = "P-8D911646UD924981MNLOCK6Q",
+                            Version = "catalog-v1"
+                        });
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Subscription", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BusinessId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnName("business_id");
+
+                    b.Property<bool>("CancelAtPeriodEnd")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("cancel_at_period_end");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("CurrentPeriodEnd")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("current_period_end");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnName("plan_id");
+
+                    b.Property<string>("ProviderSubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("provider_subscription_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_subscriptions");
+
+                    b.HasIndex("BusinessId")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_subscriptions_business_id");
+
+                    b.HasIndex("PlanId")
+                        .HasDatabaseName("i_x_subscriptions_plan_id");
+
+                    b.HasIndex("ProviderSubscriptionId")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_subscriptions_provider_subscription_id");
+
+                    b.ToTable("subscriptions", (string)null);
+                });
+
             modelBuilder.Entity("InstAlertPlatform.API.Profiles.Domain.Model.Aggregates.UserPreferences", b =>
                 {
                     b.Property<string>("Id")
@@ -213,6 +384,16 @@ namespace InstAlertPlatform.API.Migrations
                         .HasDatabaseName("i_x_outbox_messages_processed_at");
 
                     b.ToTable("outbox_messages", (string)null);
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Subscription", b =>
+                {
+                    b.HasOne("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Plan", null)
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_subscriptions_plans_plan_id");
                 });
 #pragma warning restore 612, 618
         }
