@@ -104,8 +104,13 @@ builder.Services.AddDbContext<AppDbContext>((services, options) =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 builder.Services.AddScoped<IBusinessProfileRepository, BusinessProfileRepository>();
+builder.Services.AddScoped<IBusinessMemberRepository, BusinessMemberRepository>();
+builder.Services.AddScoped<IStaffInvitationRepository, StaffInvitationRepository>();
 builder.Services.AddScoped<IBusinessProfileCommandService, BusinessProfileCommandService>();
+builder.Services.AddScoped<IBusinessRevisionCommandService, BusinessRevisionCommandService>();
 builder.Services.AddScoped<IBusinessProfileQueryService, BusinessProfileQueryService>();
+builder.Services.AddScoped<IBusinessMemberQueryService, BusinessMemberQueryService>();
+builder.Services.AddScoped<IStaffInvitationQueryService, StaffInvitationQueryService>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 builder.Services.AddScoped<IProfileCommandService, ProfileCommandService>();

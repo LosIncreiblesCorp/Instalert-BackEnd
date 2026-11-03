@@ -32,6 +32,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         business.Property(profile => profile.Address).IsRequired().HasMaxLength(250);
         business.Property(profile => profile.Latitude).IsRequired();
         business.Property(profile => profile.Longitude).IsRequired();
+        business.Property(profile => profile.SeatRevision).IsRequired().HasDefaultValue(0L);
         business.Property(profile => profile.CreatedAt).HasConversion<DateTime?>(
             value => value.HasValue ? value.Value.UtcDateTime : null,
             value => value.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)) : null);
@@ -96,6 +97,38 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         subscription.HasIndex(x => x.BusinessId).IsUnique();
         subscription.HasIndex(x => x.ProviderSubscriptionId).IsUnique();
         subscription.HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+
+        var member = builder.Entity<BusinessMember>();
+        member.ToTable("business_members");
+        member.HasKey(x => x.Id);
+        member.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        member.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        member.Property(x => x.BusinessId).IsRequired();
+        member.Property(x => x.UserId).IsRequired().HasMaxLength(160);
+        member.Property(x => x.DisplayName).IsRequired().HasMaxLength(100);
+        member.Property(x => x.Email).IsRequired().HasMaxLength(254);
+        member.Property(x => x.Role).IsRequired().HasMaxLength(30);
+        member.Property(x => x.Status).IsRequired().HasMaxLength(20);
+        member.HasIndex(x => new { x.BusinessId, x.Status });
+        member.HasIndex(x => new { x.BusinessId, x.UserId }).IsUnique();
+        member.HasIndex(x => new { x.UserId, x.Status });
+        member.HasOne<BusinessProfile>().WithMany().HasForeignKey(x => x.BusinessId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        var invitation = builder.Entity<StaffInvitation>();
+        invitation.ToTable("staff_invitations");
+        invitation.HasKey(x => x.Id);
+        invitation.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        invitation.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        invitation.Property(x => x.BusinessId).IsRequired();
+        invitation.Property(x => x.DisplayName).IsRequired().HasMaxLength(100);
+        invitation.Property(x => x.Email).IsRequired().HasMaxLength(254);
+        invitation.Property(x => x.Status).IsRequired().HasMaxLength(20);
+        invitation.Property(x => x.DeliverySequence).IsRequired();
+        invitation.Property(x => x.LastRequestedAt).IsRequired();
+        invitation.HasIndex(x => new { x.BusinessId, x.Status });
+        invitation.HasOne<BusinessProfile>().WithMany().HasForeignKey(x => x.BusinessId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.UseSnakeCaseNamingConvention();
     }

@@ -19,6 +19,78 @@ namespace InstAlertPlatform.API.Migrations
                 .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("InstAlertPlatform.API.Business.Domain.Model.Aggregates.BusinessMember", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int")
+                        .HasColumnName("business_id");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("role");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_business_members");
+
+                    b.HasIndex("BusinessId", "Status")
+                        .HasDatabaseName("i_x_business_members_business_id_status");
+
+                    b.HasIndex("BusinessId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_business_members_business_id_user_id");
+
+                    b.HasIndex("UserId", "Status")
+                        .HasDatabaseName("i_x_business_members_user_id_status");
+
+                    b.ToTable("business_members", (string)null);
+                });
+
             modelBuilder.Entity("InstAlertPlatform.API.Business.Domain.Model.Aggregates.BusinessProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -56,6 +128,12 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("varchar(160)")
                         .HasColumnName("owner_user_id");
 
+                    b.Property<long>("SeatRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("seat_revision");
+
                     b.Property<string>("TaxId")
                         .IsRequired()
                         .HasMaxLength(11)
@@ -77,6 +155,67 @@ namespace InstAlertPlatform.API.Migrations
                         .HasDatabaseName("i_x_business_profiles_tax_id");
 
                     b.ToTable("business_profiles");
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Business.Domain.Model.Aggregates.StaffInvitation", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int")
+                        .HasColumnName("business_id");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("DeliverySequence")
+                        .HasColumnType("int")
+                        .HasColumnName("delivery_sequence");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTime>("LastRequestedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("last_requested_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_staff_invitations");
+
+                    b.HasIndex("BusinessId", "Status")
+                        .HasDatabaseName("i_x_staff_invitations_business_id_status");
+
+                    b.ToTable("staff_invitations", (string)null);
                 });
 
             modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Plan", b =>
@@ -384,6 +523,26 @@ namespace InstAlertPlatform.API.Migrations
                         .HasDatabaseName("i_x_outbox_messages_processed_at");
 
                     b.ToTable("outbox_messages", (string)null);
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Business.Domain.Model.Aggregates.BusinessMember", b =>
+                {
+                    b.HasOne("InstAlertPlatform.API.Business.Domain.Model.Aggregates.BusinessProfile", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_business_members__business_profile_business_id");
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Business.Domain.Model.Aggregates.StaffInvitation", b =>
+                {
+                    b.HasOne("InstAlertPlatform.API.Business.Domain.Model.Aggregates.BusinessProfile", null)
+                        .WithMany()
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_staff_invitations_business_profiles_business_id");
                 });
 
             modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Subscription", b =>

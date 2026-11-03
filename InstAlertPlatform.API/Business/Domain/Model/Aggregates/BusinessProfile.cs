@@ -6,6 +6,10 @@ namespace InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 public partial class BusinessProfile
 {
     public int Id { get; private set; }
+    public long SeatRevision { get; private set; }
+
+    public void TouchSeats() => SeatRevision++;
+
     public string OwnerUserId { get; private set; }
     public TaxIdentifier TaxId { get; private set; }
     public string Name { get; private set; }

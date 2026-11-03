@@ -4,6 +4,8 @@ using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Interfaces.Rest.Resources;
 using InstAlertPlatform.API.Business.Interfaces.Rest.Transform;
 using InstAlertPlatform.API.Resources;
+using InstAlertPlatform.API.Shared.Application.Patterns;
+using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 
@@ -14,7 +16,8 @@ namespace InstAlertPlatform.API.Business.Interfaces.Rest;
 [Produces(MediaTypeNames.Application.Json)]
 [Tags("Businesses")]
 public class BusinessesController(IBusinessProfileCommandService commands, IBusinessProfileQueryService queries,
-    IStringLocalizer<SharedResource> localizer, IConfiguration configuration, IHostEnvironment environment,
+    IBusinessMemberQueryService memberQueries, IStaffInvitationQueryService invitationQueries,
+    ICurrentActor actor, IStringLocalizer<SharedResource> localizer,
     ILogger<BusinessesController> logger) : ControllerBase
 {
     [HttpGet]
@@ -25,9 +28,9 @@ public class BusinessesController(IBusinessProfileCommandService commands, IBusi
     public async Task<ActionResult> GetBusinesses([FromHeader(Name = "User-Id")] string? userId,
         CancellationToken cancellationToken)
     {
-        var denied = CheckAdministrator(userId, out var actorId);
+        var denied = CheckActor(userId, out var actorId);
         if (denied is not null) return denied;
-        var profiles = await queries.Handle(new GetBusinessProfilesByOwnerUserIdQuery(actorId), cancellationToken);
+        var profiles = await queries.Handle(new GetBusinessesQuery(actorId), cancellationToken);
         return Ok(profiles.Select(BusinessResourceFromEntityAssembler.ToResourceFromEntity));
     }
 
@@ -40,11 +43,53 @@ public class BusinessesController(IBusinessProfileCommandService commands, IBusi
     public async Task<ActionResult> GetBusinessById(int id, [FromHeader(Name = "User-Id")] string? userId,
         CancellationToken cancellationToken)
     {
-        var denied = CheckAdministrator(userId, out var actorId);
+        var denied = CheckActor(userId, out var actorId);
         if (denied is not null) return denied;
         var profile = await queries.Handle(new GetBusinessProfileByIdQuery(id, actorId), cancellationToken);
         return profile is null ? ToProblem(404, "not_found", "BusinessNotFound")
             : Ok(BusinessResourceFromEntityAssembler.ToResourceFromEntity(profile));
+    }
+
+    [HttpGet("{id:int}/seats")]
+    [ProducesResponseType(typeof(BusinessSeatsResource), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetBusinessSeats(int id,
+        [FromHeader(Name = "User-Id")] string? userId, CancellationToken cancellationToken)
+    {
+        var denied = CheckActor(userId, out var actorId);
+        if (denied is not null) return denied;
+        var snapshot = await queries.Handle(new GetBusinessSeatsQuery(id, actorId), cancellationToken);
+        return Ok(BusinessSeatsResourceFromSnapshotAssembler.ToResourceFromSnapshot(snapshot));
+    }
+
+    [HttpGet("{id:int}/members")]
+    [ProducesResponseType(typeof(List<BusinessMemberResource>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetBusinessMembers(int id,
+        [FromHeader(Name = "User-Id")] string? userId, CancellationToken cancellationToken)
+    {
+        var denied = CheckActor(userId, out var actorId);
+        if (denied is not null) return denied;
+        var snapshots = await memberQueries.Handle(new GetBusinessMembersQuery(id, actorId), cancellationToken);
+        return Ok(snapshots.Select(BusinessMemberResourceFromSnapshotAssembler.ToResourceFromSnapshot).ToList());
+    }
+
+    [HttpGet("{id:int}/invitations")]
+    [ProducesResponseType(typeof(List<StaffInvitationResource>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetStaffInvitations(int id,
+        [FromHeader(Name = "User-Id")] string? userId, CancellationToken cancellationToken)
+    {
+        var denied = CheckActor(userId, out var actorId);
+        if (denied is not null) return denied;
+        var snapshots = await invitationQueries.Handle(new GetStaffInvitationsQuery(id, actorId), cancellationToken);
+        return Ok(snapshots.Select(StaffInvitationResourceFromSnapshotAssembler.ToResourceFromSnapshot).ToList());
     }
 
     [HttpPost]
@@ -57,7 +102,7 @@ public class BusinessesController(IBusinessProfileCommandService commands, IBusi
     public async Task<ActionResult> CreateBusiness([FromBody] CreateBusinessResource resource,
         [FromHeader(Name = "User-Id")] string? userId, CancellationToken cancellationToken)
     {
-        var denied = CheckAdministrator(userId, out var actorId);
+        var denied = CheckActor(userId, out var actorId);
         if (denied is not null) return denied;
         try
         {
@@ -84,7 +129,7 @@ public class BusinessesController(IBusinessProfileCommandService commands, IBusi
     public async Task<ActionResult> UpdateBusiness(int id, [FromBody] UpdateBusinessResource resource,
         [FromHeader(Name = "User-Id")] string? userId, CancellationToken cancellationToken)
     {
-        var denied = CheckAdministrator(userId, out var actorId);
+        var denied = CheckActor(userId, out var actorId);
         if (denied is not null) return denied;
         try
         {
@@ -99,19 +144,21 @@ public class BusinessesController(IBusinessProfileCommandService commands, IBusi
         }
     }
 
-    private ActionResult? CheckAdministrator(string? userId, out string actorId)
+    private ActionResult? CheckActor(string? userId, out string actorId)
     {
         actorId = "";
-        var knownUsers = configuration.GetSection("DevelopmentActors:UserIds").Get<string[]>() ?? [];
-        if (!environment.IsDevelopment() || !configuration.GetValue<bool>("DevelopmentActors:Enabled") ||
-            string.IsNullOrWhiteSpace(userId) || !knownUsers.Contains(userId, StringComparer.Ordinal))
+        try
+        {
+            actorId = actor.UserId;
+        }
+        catch (DomainException error) when (error.Code == "unauthenticated")
+        {
             return ToProblem(401, "unauthenticated", "BusinessUnauthenticated");
+        }
 
-        var administrators = configuration.GetSection("DevelopmentActors:AdministratorUserIds").Get<string[]>() ?? [];
-        if (!administrators.Contains(userId, StringComparer.Ordinal))
+        if (!string.IsNullOrWhiteSpace(userId) && !string.Equals(userId, actorId, StringComparison.Ordinal))
             return ToProblem(403, "forbidden", "BusinessForbidden");
 
-        actorId = userId;
         return null;
     }
 
