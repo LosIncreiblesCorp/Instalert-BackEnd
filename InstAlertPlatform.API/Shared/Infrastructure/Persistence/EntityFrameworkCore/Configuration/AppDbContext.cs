@@ -6,6 +6,7 @@ using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Profiles.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Profiles.Domain.Model.ValueObjects;
+using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 
 namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 
@@ -65,6 +66,36 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         preferences.Property(x => x.Locale)
             .HasConversion(value => value.Value, value => new ApplicationLocale(value))
             .IsRequired().HasMaxLength(6);
+
+        var plan = builder.Entity<Plan>();
+        plan.ToTable("plans");
+        plan.HasKey(x => x.Id);
+        plan.Property(x => x.Id).IsRequired().HasMaxLength(80);
+        plan.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        plan.Property(x => x.Name).IsRequired().HasMaxLength(100);
+        plan.Property(x => x.Price).HasPrecision(10, 2);
+        plan.Property(x => x.Currency).IsRequired().HasMaxLength(3);
+        plan.Property(x => x.BillingCycle).IsRequired().HasMaxLength(10);
+        plan.Property(x => x.MaxEmployees).IsRequired();
+        plan.Property(x => x.ProviderPlanId).IsRequired().HasMaxLength(100);
+        plan.HasIndex(x => x.ProviderPlanId).IsUnique();
+        plan.HasData(
+            new { Id = "essential", Version = "catalog-v1", CreatedAt = (DateTimeOffset?)null, UpdatedAt = (DateTimeOffset?)null, Name = "Essential", Price = 15m, Currency = "USD", BillingCycle = "monthly", MaxEmployees = 4, ProviderPlanId = "P-9G467950ML2745201NLOCKGI" },
+            new { Id = "professional", Version = "catalog-v1", CreatedAt = (DateTimeOffset?)null, UpdatedAt = (DateTimeOffset?)null, Name = "Professional", Price = 30m, Currency = "USD", BillingCycle = "monthly", MaxEmployees = 8, ProviderPlanId = "P-66N5798614080793BNLOCKNY" },
+            new { Id = "business", Version = "catalog-v1", CreatedAt = (DateTimeOffset?)null, UpdatedAt = (DateTimeOffset?)null, Name = "Business", Price = 45m, Currency = "USD", BillingCycle = "monthly", MaxEmployees = 15, ProviderPlanId = "P-8D911646UD924981MNLOCK6Q" });
+
+        var subscription = builder.Entity<Subscription>();
+        subscription.ToTable("subscriptions");
+        subscription.HasKey(x => x.Id);
+        subscription.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        subscription.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        subscription.Property(x => x.BusinessId).IsRequired().HasMaxLength(80);
+        subscription.Property(x => x.PlanId).IsRequired().HasMaxLength(80);
+        subscription.Property(x => x.ProviderSubscriptionId).IsRequired().HasMaxLength(100);
+        subscription.Property(x => x.Status).IsRequired().HasMaxLength(20);
+        subscription.HasIndex(x => x.BusinessId).IsUnique();
+        subscription.HasIndex(x => x.ProviderSubscriptionId).IsUnique();
+        subscription.HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
 
         builder.UseSnakeCaseNamingConvention();
     }
