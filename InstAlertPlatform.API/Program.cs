@@ -87,6 +87,7 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Alert.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddSchemaTransformer(
         InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration.Extensions.OpenApiLocalizationAssembler.TransformSchemaAsync);
 });
@@ -121,6 +122,9 @@ builder.Services.AddScoped<IProfileQueryService, ProfileQueryService>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Domain.Repositories.IAlertRecordRepository, InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Repositories.AlertRecordRepository>();
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertCommandService, InstAlertPlatform.API.Alert.Application.Internal.CommandServices.AlertCommandService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertQueryService, InstAlertPlatform.API.Alert.Application.Internal.QueryServices.AlertQueryService>();
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
     var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
