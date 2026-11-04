@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace InstAlertPlatform.API.Business.Interfaces.Rest.Resources;
-
-public record CreateBusinessResource(
+public sealed record CreateBusinessResource(
     [Required(ErrorMessage = "BusinessTaxIdInvalid")]
     [RegularExpression("^[0-9]{11}$", ErrorMessage = "BusinessTaxIdInvalid")] string TaxId,
     [Required(ErrorMessage = "BusinessNameInvalid")]

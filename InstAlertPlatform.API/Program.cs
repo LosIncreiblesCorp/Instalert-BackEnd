@@ -87,7 +87,8 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
-    options.AddSchemaTransformer(LocalizedOpenApiAssembler.TransformSchemaAsync);
+    options.AddSchemaTransformer(
+        InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration.Extensions.OpenApiLocalizationAssembler.TransformSchemaAsync);
 });
 builder.Services.AddDbContext<AppDbContext>((services, options) =>
 {
