@@ -87,7 +87,8 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
-    options.AddSchemaTransformer(LocalizedOpenApiAssembler.TransformSchemaAsync);
+    options.AddSchemaTransformer(
+        InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration.Extensions.OpenApiLocalizationAssembler.TransformSchemaAsync);
 });
 builder.Services.AddDbContext<AppDbContext>((services, options) =>
 {
@@ -110,7 +111,9 @@ builder.Services.AddScoped<IBusinessProfileCommandService, BusinessProfileComman
 builder.Services.AddScoped<IBusinessRevisionCommandService, BusinessRevisionCommandService>();
 builder.Services.AddScoped<IBusinessProfileQueryService, BusinessProfileQueryService>();
 builder.Services.AddScoped<IBusinessMemberQueryService, BusinessMemberQueryService>();
+builder.Services.AddScoped<IBusinessMemberCommandService, BusinessMemberCommandService>();
 builder.Services.AddScoped<IStaffInvitationQueryService, StaffInvitationQueryService>();
+builder.Services.AddScoped<IStaffInvitationCommandService, StaffInvitationCommandService>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 builder.Services.AddScoped<IProfileCommandService, ProfileCommandService>();
