@@ -260,11 +260,6 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("updated_at");
 
-                    b.Property<string>("Version")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("version");
-
                     b.HasKey("Id")
                         .HasName("p_k_business_profiles");
 

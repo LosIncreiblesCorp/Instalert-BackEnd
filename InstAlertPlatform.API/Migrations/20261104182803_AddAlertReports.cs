@@ -11,12 +11,6 @@ namespace InstAlertPlatform.API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "version",
-                table: "business_profiles",
-                type: "longtext",
-                nullable: false);
-
             migrationBuilder.CreateTable(
                 name: "alerts",
                 columns: table => new
@@ -65,9 +59,6 @@ namespace InstAlertPlatform.API.Migrations
             migrationBuilder.DropTable(
                 name: "alerts");
 
-            migrationBuilder.DropColumn(
-                name: "version",
-                table: "business_profiles");
         }
     }
 }
