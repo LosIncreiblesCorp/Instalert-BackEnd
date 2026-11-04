@@ -110,7 +110,9 @@ builder.Services.AddScoped<IBusinessProfileCommandService, BusinessProfileComman
 builder.Services.AddScoped<IBusinessRevisionCommandService, BusinessRevisionCommandService>();
 builder.Services.AddScoped<IBusinessProfileQueryService, BusinessProfileQueryService>();
 builder.Services.AddScoped<IBusinessMemberQueryService, BusinessMemberQueryService>();
+builder.Services.AddScoped<IBusinessMemberCommandService, BusinessMemberCommandService>();
 builder.Services.AddScoped<IStaffInvitationQueryService, StaffInvitationQueryService>();
+builder.Services.AddScoped<IStaffInvitationCommandService, StaffInvitationCommandService>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 builder.Services.AddScoped<IProfileCommandService, ProfileCommandService>();
