@@ -91,5 +91,5 @@ public sealed class BusinessProfileCommandService(IBusinessProfileRepository bus
         }
     }
 
-    private static BusinessSnapshot ToBusinessSnapshot(BusinessProfile b) => new(b.Id.ToString(), b.OwnerUserId, b.TaxId.Value, b.Name, b.Address, b.Latitude, b.Longitude, b.Version, b.CreatedAt, b.UpdatedAt);
+    private static BusinessSnapshot ToBusinessSnapshot(BusinessProfile b) => new(b.Id.ToString(), b.OwnerUserId, b.TaxId.Value, b.Name, b.Address, b.Latitude, b.Longitude, b.CreatedAt, b.UpdatedAt);
 }

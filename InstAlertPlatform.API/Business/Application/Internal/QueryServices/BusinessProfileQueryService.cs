@@ -83,5 +83,5 @@ public sealed class BusinessProfileQueryService(IBusinessProfileRepository busin
         return invitation is null ? null : new(invitation.Email, invitation.Status == "pending", invitation.DeliverySequence);
     }
 
-    private static BusinessSnapshot ToBusinessSnapshot(BusinessProfile b) => new(b.Id.ToString(), b.OwnerUserId, b.TaxId.Value, b.Name, b.Address, b.Latitude, b.Longitude, b.Version, b.CreatedAt, b.UpdatedAt);
+    private static BusinessSnapshot ToBusinessSnapshot(BusinessProfile b) => new(b.Id.ToString(), b.OwnerUserId, b.TaxId.Value, b.Name, b.Address, b.Latitude, b.Longitude, b.CreatedAt, b.UpdatedAt);
 }

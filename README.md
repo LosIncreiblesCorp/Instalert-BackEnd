@@ -29,6 +29,8 @@ Registration requires an eleven-digit textual `taxId`, `name`, `address`, `latit
 
 For local development without IAM, the `User-Id` header accepts only configured synthetic identities when `DevelopmentActors:Enabled` is true. `synthetic-admin` is the configured development administrator; `synthetic-employee` has no administrator privileges. The header is rejected outside Development. This delivery does not implement sign-in, credentials or production authentication. Ownership checks remain server-side, and the frontend role selection does not grant permissions.
 
+In Development, `DevelopmentData:SeedOnStartup` creates an idempotent synthetic business owned by `synthetic-admin`, an active membership for `synthetic-employee`, and a 30-day simulated Essential subscription when those records do not already exist. Existing records are preserved. The business receives its database-generated ID on first startup; call `GET /api/v1/businesses` with `User-Id: synthetic-admin` or `User-Id: synthetic-employee` to retrieve it. No IAM accounts, credentials, or real payments are created.
+
 ## Verification
 
 ```powershell
