@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using InstAlertPlatform.API.Resources;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
@@ -7,10 +8,12 @@ using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Seeders;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using InstAlertPlatform.API.Business.Application.Internal.CommandServices;
 using InstAlertPlatform.API.Business.Application.Internal.QueryServices;
@@ -87,7 +90,43 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
-    options.AddSchemaTransformer(LocalizedOpenApiAssembler.TransformSchemaAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Alert.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    // TODO: luego reemplazar por token o IAM.
+    if (builder.Environment.IsDevelopment())
+    {
+        options.AddDocumentTransformer((document, _, _) =>
+        {
+            foreach (var (path, pathItem) in document.Paths)
+            {
+                if (path.Equals("/api/v1/plans", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (pathItem.Operations is not { } operations)
+                    continue;
+
+                foreach (var operation in operations.Values)
+                {
+                    operation.Parameters ??= [];
+                    operation.Parameters.Add(new OpenApiParameter
+                    {
+                        Name = "User-Id",
+                        In = ParameterLocation.Header,
+                        Required = true,
+                        Description = "Synthetic development user ID.",
+                        Schema = new OpenApiSchema
+                        {
+                            Type = JsonSchemaType.String,
+                            Default = JsonValue.Create("synthetic-admin")
+                        }
+                    });
+                }
+            }
+
+            return Task.CompletedTask;
+        });
+    }
+    options.AddSchemaTransformer(
+        InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration.Extensions.OpenApiLocalizationAssembler.TransformSchemaAsync);
 });
 builder.Services.AddDbContext<AppDbContext>((services, options) =>
 {
@@ -110,7 +149,9 @@ builder.Services.AddScoped<IBusinessProfileCommandService, BusinessProfileComman
 builder.Services.AddScoped<IBusinessRevisionCommandService, BusinessRevisionCommandService>();
 builder.Services.AddScoped<IBusinessProfileQueryService, BusinessProfileQueryService>();
 builder.Services.AddScoped<IBusinessMemberQueryService, BusinessMemberQueryService>();
+builder.Services.AddScoped<IBusinessMemberCommandService, BusinessMemberCommandService>();
 builder.Services.AddScoped<IStaffInvitationQueryService, StaffInvitationQueryService>();
+builder.Services.AddScoped<IStaffInvitationCommandService, StaffInvitationCommandService>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 builder.Services.AddScoped<IProfileCommandService, ProfileCommandService>();
@@ -118,6 +159,9 @@ builder.Services.AddScoped<IProfileQueryService, ProfileQueryService>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Domain.Repositories.IAlertRecordRepository, InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Repositories.AlertRecordRepository>();
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertCommandService, InstAlertPlatform.API.Alert.Application.Internal.CommandServices.AlertCommandService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertQueryService, InstAlertPlatform.API.Alert.Application.Internal.QueryServices.AlertQueryService>();
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
     var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
@@ -134,6 +178,8 @@ if (app.Environment.IsDevelopment() &&
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await context.Database.MigrateAsync();
 }
+
+await DevelopmentDataSeeder.SeedAsync(app.Services);
 
 string[] supportedCultures = ["en-US", "es-419"];
 var localization = new RequestLocalizationOptions()

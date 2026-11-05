@@ -7,6 +7,7 @@ using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Profiles.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Profiles.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
+using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
 
 namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 
@@ -129,6 +130,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         invitation.HasIndex(x => new { x.BusinessId, x.Status });
         invitation.HasOne<BusinessProfile>().WithMany().HasForeignKey(x => x.BusinessId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        var alert = builder.Entity<AlertRecord>();
+        alert.ToTable("alerts");
+        alert.HasKey(x => x.Id);
+        alert.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        alert.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        alert.Property(x => x.BusinessId).IsRequired().HasMaxLength(80);
+        alert.Property(x => x.EmployeeId).IsRequired().HasMaxLength(80);
+        alert.Property(x => x.Kind).IsRequired().HasMaxLength(30);
+        alert.Property(x => x.Status).IsRequired().HasMaxLength(30);
+        alert.Property(x => x.ReportStatus).HasMaxLength(20);
+        alert.Property(x => x.Category).IsRequired().HasMaxLength(80);
+        alert.Property(x => x.Description).IsRequired().HasMaxLength(2000);
+        alert.Property(x => x.Location).IsRequired().HasMaxLength(250);
+        alert.HasIndex(x => new { x.BusinessId, x.Status });
+        alert.HasIndex(x => x.EmployeeId);
 
         builder.UseSnakeCaseNamingConvention();
     }

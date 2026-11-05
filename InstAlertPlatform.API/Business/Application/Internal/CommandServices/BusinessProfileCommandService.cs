@@ -1,90 +1,95 @@
+using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
 using InstAlertPlatform.API.Business.Domain.Repositories;
 using InstAlertPlatform.API.Shared.Application.Patterns;
+using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace InstAlertPlatform.API.Business.Application.Internal.CommandServices;
-
-public class BusinessProfileCommandService(IBusinessProfileRepository repository, IUnitOfWork unitOfWork,
-    ILogger<BusinessProfileCommandService> logger) : IBusinessProfileCommandService
+public sealed class BusinessProfileCommandService(IBusinessProfileRepository businesses, IBusinessProfileQueryService access, ICurrentActor actor, IUnitOfWork work) : IBusinessProfileCommandService
 {
-    public async Task<Result<BusinessProfile, ECreateBusinessProfileError>> Handle(
-        CreateBusinessProfileCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<BusinessSnapshot, ECreateBusinessError>> Handle(CreateBusinessCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
-            var profile = new BusinessProfile(command);
-            if (await repository.FindByTaxIdAsync(profile.TaxId, cancellationToken) is not null)
-                return new Result<BusinessProfile, ECreateBusinessProfileError>.Failure(ECreateBusinessProfileError.DuplicateTaxIdentifier);
-
-            await repository.AddAsync(profile, cancellationToken);
-            await unitOfWork.CompleteAsync(cancellationToken);
-            return new Result<BusinessProfile, ECreateBusinessProfileError>.Success(profile);
+            Guard.Require(actor.IsAdministrator, "forbidden");
+            var details = command;
+            Guard.Coordinates(details.Latitude, details.Longitude, true);
+            var businessProfile = new BusinessProfile(actor.UserId, details.TaxId, details.Name, details.Address, details.Latitude!.Value, details.Longitude!.Value);
+            Guard.Require((await businesses.FindByTaxIdAsync(businessProfile.TaxId, cancellationToken)).Count == 0, "conflict");
+            await businesses.AddAsync(businessProfile, cancellationToken);
+            await work.CompleteAsync(cancellationToken);
+            return new Result<BusinessSnapshot, ECreateBusinessError>.Success(ToBusinessSnapshot(businessProfile));
         }
         catch (ArgumentException)
         {
-            return new Result<BusinessProfile, ECreateBusinessProfileError>.Failure(ECreateBusinessProfileError.InvalidDetails);
+            return new Result<BusinessSnapshot, ECreateBusinessError>.Failure(ECreateBusinessError.InvalidInput);
         }
-        catch (DbUpdateException error) when (IsDuplicateKeyViolation(error))
+        catch (DomainException error)
         {
-            logger.LogWarning("A duplicate business tax identifier was rejected.");
-            return new Result<BusinessProfile, ECreateBusinessProfileError>.Failure(ECreateBusinessProfileError.DuplicateTaxIdentifier);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception error)
-        {
-            logger.LogError(error, "Business profile creation failed.");
-            return new Result<BusinessProfile, ECreateBusinessProfileError>.Failure(ECreateBusinessProfileError.UnexpectedError);
+            return new Result<BusinessSnapshot, ECreateBusinessError>.Failure(error.Code switch
+            {
+                "validation" => ECreateBusinessError.InvalidInput,
+                "unauthenticated" => ECreateBusinessError.Unauthenticated,
+                "forbidden" => ECreateBusinessError.Forbidden,
+                "not_found" => ECreateBusinessError.NotFound,
+                "conflict" => ECreateBusinessError.Conflict,
+                "concurrency" => ECreateBusinessError.ConcurrencyConflict,
+                "capacity" => ECreateBusinessError.CapacityExceeded,
+                "transition" => ECreateBusinessError.InvalidTransition,
+                "provider_unavailable" => ECreateBusinessError.ProviderUnavailable,
+                "identity_unavailable" => ECreateBusinessError.IdentityUnavailable,
+                "unexpected" => ECreateBusinessError.UnexpectedError,
+                _ => ECreateBusinessError.UnexpectedError
+            })
+            {
+                Field = error.Field
+            };
         }
     }
 
-    public async Task<Result<BusinessProfile, EUpdateBusinessProfileError>> Handle(
-        UpdateBusinessProfileCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<BusinessSnapshot, EUpdateBusinessError>> Handle(UpdateBusinessCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
-            var profile = await repository.FindByIdAsync(command.Id, cancellationToken);
-            if (profile is null)
-                return new Result<BusinessProfile, EUpdateBusinessProfileError>.Failure(EUpdateBusinessProfileError.NotFound);
-            if (profile.OwnerUserId != command.OwnerUserId)
-                return new Result<BusinessProfile, EUpdateBusinessProfileError>.Failure(EUpdateBusinessProfileError.Forbidden);
-            if (command.TaxId is not null && command.TaxId != profile.TaxId)
-                return new Result<BusinessProfile, EUpdateBusinessProfileError>.Failure(EUpdateBusinessProfileError.TaxIdentifierReadOnly);
-
-            profile.Update(command);
-            await unitOfWork.CompleteAsync(cancellationToken);
-            return new Result<BusinessProfile, EUpdateBusinessProfileError>.Success(profile);
+            var id = command.Id;
+            var details = command;
+            await access.Handle(new RequireBusinessAccessQuery(id, actor.UserId, true), cancellationToken);
+            var businessProfile = (await businesses.FindByIdAsync(id, cancellationToken))!;
+            Guard.Coordinates(details.Latitude, details.Longitude, true);
+            businessProfile.Update(details.TaxId ?? businessProfile.TaxId.Value, details.Name, details.Address, details.Latitude!.Value, details.Longitude!.Value);
+            await work.CompleteAsync(cancellationToken);
+            return new Result<BusinessSnapshot, EUpdateBusinessError>.Success(ToBusinessSnapshot(businessProfile));
         }
         catch (ArgumentException)
         {
-            return new Result<BusinessProfile, EUpdateBusinessProfileError>.Failure(EUpdateBusinessProfileError.InvalidDetails);
+            return new Result<BusinessSnapshot, EUpdateBusinessError>.Failure(EUpdateBusinessError.InvalidInput);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (DomainException error)
         {
-            throw;
-        }
-        catch (Exception error)
-        {
-            logger.LogError(error, "Business profile update failed.");
-            return new Result<BusinessProfile, EUpdateBusinessProfileError>.Failure(EUpdateBusinessProfileError.UnexpectedError);
+            return new Result<BusinessSnapshot, EUpdateBusinessError>.Failure(error.Code switch
+            {
+                "validation" => EUpdateBusinessError.InvalidInput,
+                "unauthenticated" => EUpdateBusinessError.Unauthenticated,
+                "forbidden" => EUpdateBusinessError.Forbidden,
+                "not_found" => EUpdateBusinessError.NotFound,
+                "conflict" => EUpdateBusinessError.Conflict,
+                "concurrency" => EUpdateBusinessError.ConcurrencyConflict,
+                "capacity" => EUpdateBusinessError.CapacityExceeded,
+                "transition" => EUpdateBusinessError.InvalidTransition,
+                "provider_unavailable" => EUpdateBusinessError.ProviderUnavailable,
+                "identity_unavailable" => EUpdateBusinessError.IdentityUnavailable,
+                "unexpected" => EUpdateBusinessError.UnexpectedError,
+                _ => EUpdateBusinessError.UnexpectedError
+            })
+            {
+                Field = error.Field
+            };
         }
     }
 
-    private static bool IsDuplicateKeyViolation(DbUpdateException exception)
-    {
-        for (Exception? current = exception; current is not null; current = current.InnerException)
-        {
-            if (current.GetType().Name == "MySqlException" &&
-                current.GetType().GetProperty("Number")?.GetValue(current) is int number && number == 1062)
-                return true;
-        }
-        return false;
-    }
+    private static BusinessSnapshot ToBusinessSnapshot(BusinessProfile b) => new(b.Id.ToString(), b.OwnerUserId, b.TaxId.Value, b.Name, b.Address, b.Latitude, b.Longitude, b.CreatedAt, b.UpdatedAt);
 }

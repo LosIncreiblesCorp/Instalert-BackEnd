@@ -3,13 +3,22 @@ using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
 
 namespace InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 
-public partial class BusinessProfile
+public sealed partial class BusinessProfile
 {
     public int Id { get; private set; }
     public long SeatRevision { get; private set; }
 
     public void TouchSeats() => SeatRevision++;
 
+    public BusinessProfile(string ownerId, string taxId, string name, string address, double latitude, double longitude)
+        : this(new CreateBusinessProfileCommand(ownerId, new TaxIdentifier(taxId), name, address, latitude, longitude)) { }
+
+    public void Update(string taxId, string name, string address, double latitude, double longitude)
+    {
+        if (TaxId.Value != taxId)
+            throw new InstAlertPlatform.API.Shared.Domain.Model.DomainException("validation", "taxId");
+        Update(new UpdateBusinessProfileCommand(Id, OwnerUserId, new TaxIdentifier(taxId), name, address, latitude, longitude));
+    }
     public string OwnerUserId { get; private set; }
     public TaxIdentifier TaxId { get; private set; }
     public string Name { get; private set; }

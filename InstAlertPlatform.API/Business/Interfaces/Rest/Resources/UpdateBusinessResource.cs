@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace InstAlertPlatform.API.Business.Interfaces.Rest.Resources;
-
-public record UpdateBusinessResource(
+public sealed record UpdateBusinessResource(
     [Required(ErrorMessage = "BusinessNameInvalid")]
     [StringLength(150, ErrorMessage = "BusinessNameInvalid")] string Name,
     [Required(ErrorMessage = "BusinessAddressInvalid")]
