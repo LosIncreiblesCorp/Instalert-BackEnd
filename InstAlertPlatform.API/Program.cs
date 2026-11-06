@@ -93,6 +93,7 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Alert.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Contacts.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     // TODO: luego reemplazar por token o IAM.
     if (builder.Environment.IsDevelopment())
     {
@@ -119,7 +120,10 @@ builder.Services.AddOpenApi(options =>
                         Schema = new OpenApiSchema
                         {
                             Type = JsonSchemaType.String,
-                            Default = JsonValue.Create("synthetic-admin")
+                            Default = JsonValue.Create(
+                                path.StartsWith("/api/v1/emergency-contacts", StringComparison.OrdinalIgnoreCase)
+                                    ? "synthetic-employee"
+                                    : "synthetic-admin")
                         }
                     });
                 }
@@ -187,6 +191,9 @@ builder.Services.AddScoped<IPaymentReconciliationCommandService, PaymentReconcil
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Domain.Repositories.IAlertRecordRepository, InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Repositories.AlertRecordRepository>();
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertCommandService, InstAlertPlatform.API.Alert.Application.Internal.CommandServices.AlertCommandService>();
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertQueryService, InstAlertPlatform.API.Alert.Application.Internal.QueryServices.AlertQueryService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Contacts.Domain.Repositories.IEmergencyContactRepository, InstAlertPlatform.API.Contacts.Infrastructure.Persistence.EntityFrameworkCore.Repositories.EmergencyContactRepository>();
+builder.Services.AddScoped<InstAlertPlatform.API.Contacts.Application.Services.IEmergencyContactCommandService, InstAlertPlatform.API.Contacts.Application.Internal.CommandServices.EmergencyContactCommandService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Contacts.Application.Services.IEmergencyContactQueryService, InstAlertPlatform.API.Contacts.Application.Internal.QueryServices.EmergencyContactQueryService>();
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
     var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
