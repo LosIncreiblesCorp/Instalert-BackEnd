@@ -99,6 +99,38 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         subscription.HasIndex(x => x.ProviderSubscriptionId).IsUnique();
         subscription.HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
 
+        var checkoutIntent = builder.Entity<CheckoutIntent>();
+        checkoutIntent.ToTable("checkout_intents");
+        checkoutIntent.HasKey(x => x.Id);
+        checkoutIntent.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        checkoutIntent.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        checkoutIntent.Property(x => x.BusinessId).IsRequired().HasMaxLength(80);
+        checkoutIntent.Property(x => x.PlanId).IsRequired().HasMaxLength(80);
+        checkoutIntent.Property(x => x.ExpiresAt).IsRequired();
+        checkoutIntent.Property(x => x.Completed).IsRequired();
+        checkoutIntent.HasIndex(x => new { x.BusinessId, x.Completed, x.ExpiresAt });
+        checkoutIntent.HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+
+        var paymentTransaction = builder.Entity<PaymentTransaction>();
+        paymentTransaction.ToTable("payment_transactions");
+        paymentTransaction.HasKey(x => x.Id);
+        paymentTransaction.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        paymentTransaction.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        paymentTransaction.Property(x => x.BusinessId).IsRequired().HasMaxLength(80);
+        paymentTransaction.Property(x => x.ProviderTransactionId).IsRequired().HasMaxLength(100);
+        paymentTransaction.Property(x => x.Amount).HasPrecision(10, 2);
+        paymentTransaction.Property(x => x.Currency).IsRequired().HasMaxLength(3);
+        paymentTransaction.Property(x => x.PaidAt).IsRequired();
+        paymentTransaction.HasIndex(x => x.ProviderTransactionId).IsUnique();
+        paymentTransaction.HasIndex(x => new { x.BusinessId, x.PaidAt });
+
+        var webhookReceipt = builder.Entity<PayPalWebhookReceipt>();
+        webhookReceipt.ToTable("paypal_webhook_receipts");
+        webhookReceipt.HasKey(x => x.Id);
+        webhookReceipt.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        webhookReceipt.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        webhookReceipt.Property(x => x.EventType).IsRequired().HasMaxLength(100);
+
         var member = builder.Entity<BusinessMember>();
         member.ToTable("business_members");
         member.HasKey(x => x.Id);
