@@ -27,8 +27,10 @@ using InstAlertPlatform.API.Profiles.Application.Services;
 using InstAlertPlatform.API.Profiles.Domain.Repositories;
 using InstAlertPlatform.API.Profiles.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using InstAlertPlatform.API.Payments.Application.Internal.QueryServices;
+using InstAlertPlatform.API.Payments.Application.Internal.CommandServices;
 using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Repositories;
+using InstAlertPlatform.API.Payments.Infrastructure;
 using InstAlertPlatform.API.Payments.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -98,7 +100,8 @@ builder.Services.AddOpenApi(options =>
         {
             foreach (var (path, pathItem) in document.Paths)
             {
-                if (path.Equals("/api/v1/plans", StringComparison.OrdinalIgnoreCase))
+                if (path.Equals("/api/v1/plans", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("/api/v1/payments/paypal/webhook", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 if (pathItem.Operations is not { } operations)
@@ -159,6 +162,28 @@ builder.Services.AddScoped<IProfileQueryService, ProfileQueryService>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
+builder.Services.AddHttpClient<PayPalSubscriptions>(client =>
+{
+    var configuredAddress = builder.Configuration["PayPal:ApiBaseUrl"];
+    var defaultAddress = builder.Environment.IsDevelopment()
+        ? "https://api-m.sandbox.paypal.com/"
+        : "https://api-m.paypal.com/";
+    var address = configuredAddress ?? defaultAddress;
+    if (!Uri.TryCreate(address, UriKind.Absolute, out var baseAddress) ||
+        baseAddress.Scheme != Uri.UriSchemeHttps ||
+        !string.IsNullOrEmpty(baseAddress.UserInfo))
+        throw new InvalidOperationException("PayPal:ApiBaseUrl must be an HTTPS URL without embedded credentials.");
+    client.BaseAddress = baseAddress;
+    client.Timeout = TimeSpan.FromSeconds(20);
+});
+builder.Services.AddScoped<IPayPalSubscriptions>(services => services.GetRequiredService<PayPalSubscriptions>());
+builder.Services.AddScoped<IPayPalWebhookVerifier>(services => services.GetRequiredService<PayPalSubscriptions>());
+builder.Services.AddScoped<ICheckoutIntentRepository, CheckoutIntentRepository>();
+builder.Services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+builder.Services.AddScoped<IPayPalWebhookReceiptRepository, PayPalWebhookReceiptRepository>();
+builder.Services.AddScoped<ISubscriptionCommandService, SubscriptionCommandService>();
+builder.Services.AddScoped<ISubscriptionQueryService, SubscriptionQueryService>();
+builder.Services.AddScoped<IPaymentReconciliationCommandService, PaymentReconciliationCommandService>();
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Domain.Repositories.IAlertRecordRepository, InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Repositories.AlertRecordRepository>();
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertCommandService, InstAlertPlatform.API.Alert.Application.Internal.CommandServices.AlertCommandService>();
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Services.IAlertQueryService, InstAlertPlatform.API.Alert.Application.Internal.QueryServices.AlertQueryService>();

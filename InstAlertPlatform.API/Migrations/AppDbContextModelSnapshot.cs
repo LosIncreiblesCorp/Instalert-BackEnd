@@ -331,6 +331,156 @@ namespace InstAlertPlatform.API.Migrations
                     b.ToTable("staff_invitations", (string)null);
                 });
 
+            modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.CheckoutIntent", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BusinessId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnName("business_id");
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("completed");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("PlanId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnName("plan_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_checkout_intents");
+
+                    b.HasIndex("PlanId")
+                        .HasDatabaseName("i_x_checkout_intents_plan_id");
+
+                    b.HasIndex("BusinessId", "Completed", "ExpiresAt")
+                        .HasDatabaseName("i_x_checkout_intents_business_id_completed_expires_at");
+
+                    b.ToTable("checkout_intents", (string)null);
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.PayPalWebhookReceipt", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("event_type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_paypal_webhook_receipts");
+
+                    b.ToTable("paypal_webhook_receipts", (string)null);
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.PaymentTransaction", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("BusinessId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnName("business_id");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("varchar(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<DateTime>("PaidAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("paid_at");
+
+                    b.Property<string>("ProviderTransactionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("provider_transaction_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_payment_transactions");
+
+                    b.HasIndex("ProviderTransactionId")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_payment_transactions_provider_transaction_id");
+
+                    b.HasIndex("BusinessId", "PaidAt")
+                        .HasDatabaseName("i_x_payment_transactions_business_id_paid_at");
+
+                    b.ToTable("payment_transactions", (string)null);
+                });
+
             modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Plan", b =>
                 {
                     b.Property<string>("Id")
@@ -656,6 +806,16 @@ namespace InstAlertPlatform.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("f_k_staff_invitations_business_profiles_business_id");
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.CheckoutIntent", b =>
+                {
+                    b.HasOne("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Plan", null)
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("f_k_checkout_intents_plans_plan_id");
                 });
 
             modelBuilder.Entity("InstAlertPlatform.API.Payments.Domain.Model.Aggregates.Subscription", b =>
