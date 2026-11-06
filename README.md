@@ -49,6 +49,20 @@ All business subscription routes require `User-Id` in Development; use `syntheti
 
 Configure PayPal outside source control with `PayPal__ClientId`, `PayPal__ClientSecret`, and `PayPal__WebhookId`. `PayPal__ApiBaseUrl` can override the API host; Development defaults to PayPal Sandbox and other environments default to PayPal Live. The webhook endpoint requires the real webhook ID from the corresponding PayPal environment; it returns `503` when that ID is not configured. Do not send `User-Id` as webhook authentication: PayPal transmission headers and server-side signature verification are required. Checkout creation does not itself create a PayPal subscription or charge a payment; the buyer approval and subsequent server verification are separate steps.
 
+## Emergency contacts API
+
+The operational employee manages only their own emergency contacts. In Development, send `User-Id: synthetic-employee`; the Scalar/OpenAPI default for these routes is configured accordingly. `synthetic-admin` is not an operational member and receives 403. The development identity header is not production authentication; replace it with IAM-backed identity before production use.
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/v1/emergency-contacts` | List the caller's contacts |
+| POST | `/api/v1/emergency-contacts` | Create a contact |
+| GET | `/api/v1/emergency-contacts/{id}` | Read an owned contact |
+| PUT | `/api/v1/emergency-contacts/{id}` | Update an owned contact |
+| DELETE | `/api/v1/emergency-contacts/{id}` | Delete an owned contact |
+
+Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled in F09.
+
 ## Verification
 
 ```powershell

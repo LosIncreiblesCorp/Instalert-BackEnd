@@ -8,6 +8,7 @@ using InstAlertPlatform.API.Profiles.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Profiles.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
+using InstAlertPlatform.API.Contacts.Domain.Model.Aggregates;
 
 namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 
@@ -178,6 +179,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         alert.Property(x => x.Location).IsRequired().HasMaxLength(250);
         alert.HasIndex(x => new { x.BusinessId, x.Status });
         alert.HasIndex(x => x.EmployeeId);
+
+        var contact = builder.Entity<EmergencyContact>();
+        contact.ToTable("emergency_contacts");
+        contact.HasKey(x => x.Id);
+        contact.Property(x => x.Id).IsRequired().HasMaxLength(160);
+        contact.Property(x => x.Version).IsRequired().HasMaxLength(36).IsConcurrencyToken();
+        contact.Property(x => x.EmployeeId).IsRequired().HasMaxLength(80);
+        contact.Property(x => x.FullName).IsRequired().HasMaxLength(100);
+        contact.Property(x => x.Relationship).IsRequired().HasMaxLength(60);
+        contact.Property(x => x.Phone).IsRequired().HasMaxLength(16);
+        contact.Property(x => x.Email).HasMaxLength(254);
+        contact.Property(x => x.Notes).HasMaxLength(140);
+        contact.HasIndex(x => x.EmployeeId);
 
         builder.UseSnakeCaseNamingConvention();
     }
