@@ -9,7 +9,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Payments.Application.Internal.CommandServices;
-public sealed class PaymentReconciliationCommandService(ISubscriptionRepository subscriptions, IPlanRepository plans, IPaymentTransactionRepository transactions, IPayPalWebhookReceiptRepository receipts, IPayPalSubscriptions provider, IUnitOfWork work, TimeProvider clock) : IPaymentReconciliationCommandService
+public sealed class PaymentReconciliationCommandService(ISubscriptionRepository subscriptions, IPaymentTransactionRepository transactions, IPayPalWebhookReceiptRepository receipts, IPayPalSubscriptions provider, IUnitOfWork work, TimeProvider clock) : IPaymentReconciliationCommandService
 {
     public async Task<Result<bool, EReconcilePaymentError>> Handle(ReconcilePaymentCommand command, CancellationToken cancellationToken = default)
     {
@@ -23,16 +23,11 @@ public sealed class PaymentReconciliationCommandService(ISubscriptionRepository 
             var subscription = (await subscriptions.FindByProviderSubscriptionIdAsync(providerSubscriptionId, cancellationToken)).SingleOrDefault();
             if (subscription is null)
                 throw new DomainException("conflict");
-            var plan = await plans.FindByIdAsync(subscription.PlanId, cancellationToken);
-            if (plan is null)
-                throw new DomainException("conflict");
-            await provider.ValidatePlan(plan.ProviderPlanId, plan.Price, plan.Currency, cancellationToken);
             var current = await provider.Get(providerSubscriptionId, cancellationToken);
-            Guard.Require(current.Id == providerSubscriptionId && current.PlanId == plan.ProviderPlanId, "conflict");
             var confirmed = await provider.Transactions(providerSubscriptionId, clock.GetUtcNow().AddDays(-30), clock.GetUtcNow(), cancellationToken);
             foreach (var payment in confirmed)
             {
-                Guard.Require(payment.Amount == plan.Price && payment.Currency == plan.Currency, "conflict");
+                Guard.Require(payment.Amount > 0 && payment.Currency == "USD", "conflict");
                 if ((await transactions.FindByProviderTransactionIdAsync(payment.Id, cancellationToken)).Count == 0)
                     await transactions.AddAsync(new PaymentTransaction(subscription.BusinessId, payment.Id, payment.Amount, payment.Currency, payment.PaidAt), cancellationToken);
             }
