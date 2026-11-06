@@ -6,9 +6,11 @@ namespace InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 public sealed partial class BusinessProfile
 {
     public int Id { get; private set; }
+    public string Version { get; private set; } = Guid.NewGuid().ToString();
     public long SeatRevision { get; private set; }
 
     public void TouchSeats() => SeatRevision++;
+    public void RenewVersion() => Version = Guid.NewGuid().ToString();
 
     public BusinessProfile(string ownerId, string taxId, string name, string address, double latitude, double longitude)
         : this(new CreateBusinessProfileCommand(ownerId, new TaxIdentifier(taxId), name, address, latitude, longitude)) { }

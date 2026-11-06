@@ -1,6 +1,5 @@
 using InstAlertPlatform.API.Payments.Application.Services;
 using System.Globalization;
-using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -23,19 +22,11 @@ public sealed class PayPalSubscriptions(HttpClient client, IConfiguration config
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", json.RootElement.GetProperty("access_token").GetString());
     }
 
-    private static void RequireResourceSuccess(HttpResponseMessage response)
-    {
-        if (response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.NotFound or HttpStatusCode.UnprocessableEntity)
-            throw new DomainException("conflict");
-
-        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
-    }
-
     public async Task<ProviderSubscription> Get(string id, CancellationToken token)
     {
         await Authorize(token);
         using var response = await client.GetAsync("v1/billing/subscriptions/" + Uri.EscapeDataString(id), token);
-        RequireResourceSuccess(response);
+        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
         var p = json.RootElement;
         var paid = p.TryGetProperty("billing_info", out var billing) && billing.TryGetProperty("last_payment", out var last) && last.TryGetProperty("time", out _);
@@ -49,14 +40,14 @@ public sealed class PayPalSubscriptions(HttpClient client, IConfiguration config
     {
         await Authorize(token);
         using var response = await client.PostAsJsonAsync("v1/billing/subscriptions/" + Uri.EscapeDataString(id) + "/cancel", new { reason = "Customer requested cancellation of future renewals" }, token);
-        RequireResourceSuccess(response);
+        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
     }
 
     public async Task ValidatePlan(string id, decimal amount, string currency, CancellationToken token)
     {
         await Authorize(token);
         using var response = await client.GetAsync("v1/billing/plans/" + Uri.EscapeDataString(id), token);
-        RequireResourceSuccess(response);
+        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
         var plan = json.RootElement;
         Guard.Require(plan.GetProperty("status").GetString() == "ACTIVE", "conflict");
@@ -73,7 +64,7 @@ public sealed class PayPalSubscriptions(HttpClient client, IConfiguration config
         await Authorize(token);
         var path = "v1/billing/subscriptions/" + Uri.EscapeDataString(id) + "/transactions?start_time=" + Uri.EscapeDataString(start.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")) + "&end_time=" + Uri.EscapeDataString(end.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         using var response = await client.GetAsync(path, token);
-        RequireResourceSuccess(response);
+        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
         var result = new List<ProviderTransaction>();
         foreach (var transaction in json.RootElement.GetProperty("transactions").EnumerateArray())
