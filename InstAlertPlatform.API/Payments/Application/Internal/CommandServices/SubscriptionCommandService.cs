@@ -131,10 +131,7 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
             var s = (await subscriptions.FindByBusinessIdAsync(businessId, cancellationToken)).SingleOrDefault() ?? throw new DomainException("not_found");
             if (s.CancelAtPeriodEnd)
                 return new Result<SubscriptionSnapshot, ECancelSubscriptionRenewalError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), s));
-            if (IsDevelopmentSubscription(s))
-                Guard.Require(CanReplaceDevelopmentSubscription(s), "transition");
-            else
-                await provider.Cancel(s.ProviderSubscriptionId, cancellationToken);
+            await provider.Cancel(s.ProviderSubscriptionId, cancellationToken);
             s.ScheduleCancellation();
             await work.CompleteAsync(cancellationToken);
             return new Result<SubscriptionSnapshot, ECancelSubscriptionRenewalError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), s));
@@ -217,7 +214,6 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
             if (intent.Completed && current.PlanId == intent.PlanId)
                 return new Result<SubscriptionSnapshot, EVerifySubscriptionPlanChangeError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), current));
             var plan = await plans.FindByIdAsync(intent.PlanId, cancellationToken) ?? throw new DomainException("not_found");
-            await provider.ValidatePlan(plan.ProviderPlanId, plan.Price, plan.Currency, cancellationToken);
             var response = await provider.Get(current.ProviderSubscriptionId, cancellationToken);
             Guard.Require(response.Id == current.ProviderSubscriptionId && response.Status == "ACTIVE" && response.PlanId == plan.ProviderPlanId && response.PaidUntil > clock.GetUtcNow(), "conflict");
             var usage = await business.Handle(new GetBusinessSeatUsageQuery(businessId), cancellationToken);
