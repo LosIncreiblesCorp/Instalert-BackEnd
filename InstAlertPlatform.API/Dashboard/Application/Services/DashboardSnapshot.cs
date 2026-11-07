@@ -1,0 +1,2 @@
+namespace InstAlertPlatform.API.Dashboard.Application.Services;
+public sealed record DashboardSnapshot(string Role, string BusinessId, string? UserId, string BusinessName, DashboardPeriod Period, int RadiusMeters, DateTimeOffset RefreshedAt, DashboardMetrics Metrics, StaffMetrics? Staff, object? Subscription, List<SeriesPoint> Daily, List<SeriesPoint> Categories, List<SeriesPoint> Statuses, List<SeriesPoint> Hourly, List<SeriesPoint> RiskCounts, object[] RiskZones, object[]? Activity, string[] Warnings);
