@@ -5,6 +5,8 @@ using InstAlertPlatform.API.Contacts.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
+using InstAlertPlatform.API.Mapping.Domain.Model.Aggregates;
+using InstAlertPlatform.API.Mapping.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +29,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<AlertRecord>().Property(x => x.Location).HasMaxLength(250);
         builder.Entity<AlertRecord>().HasIndex(x => new { x.BusinessId, x.Status });
         builder.Entity<AlertRecord>().HasIndex(x => x.EmployeeId);
+        builder.ApplyMappingConfiguration();
         builder.Entity<AlertPreferences>().ToTable("alert_preferences");
         builder.Entity<BusinessProfile>().ToTable("business_profiles");
         builder.Entity<BusinessProfile>().HasKey(x => x.Id);
