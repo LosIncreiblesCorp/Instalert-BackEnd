@@ -10,13 +10,17 @@ using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Dashboard.Application.Services;
 using InstAlertPlatform.API.Dashboard.Domain.Model.ValueObjects;
+using InstAlertPlatform.API.Dashboard.Domain.Repositories;
 using InstAlertPlatform.API.Shared.Application.Patterns;
+using System.Text.Json;
+using InstAlertPlatform.API.Dashboard.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Dashboard.Application.Internal.QueryServices;
 public sealed class DashboardProjectionBuilder(IAlertQueryService alerts, IBusinessProfileQueryService business, IPlanQueryService limits, INotificationQueryService notifications, TimeProvider clock, IMappingQueryService mapping)
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     public async Task<DashboardSnapshot> Compose(BusinessSnapshot b, string role, string? userId, string month, DateTimeOffset cutoff, int radius, bool closed, CancellationToken token)
     {
         Guard.Require(radius is 100 or 500 or 1000, "validation", "radiusMeters");
@@ -29,6 +33,12 @@ public sealed class DashboardProjectionBuilder(IAlertQueryService alerts, IBusin
             bounds.Start
         }.Min();
         return await ComposePeriod(b, role, userId, new("month", month, bounds.Start, cutoff, previous, previousEnd, "America/Lima"), radius, closed, token);
+    }
+
+    public Task<DashboardSnapshot> ComposeReport(BusinessSnapshot b, string userId, ReportingPeriod bounds, CancellationToken token)
+    {
+        var elapsed = bounds.End - bounds.Start;
+        return ComposePeriod(b, "administrator", userId, new("range", null, bounds.Start, bounds.End, bounds.Start - elapsed, bounds.Start, "America/Lima"), 500, true, token);
     }
 
     private async Task<DashboardSnapshot> ComposePeriod(BusinessSnapshot b, string role, string? userId, DashboardPeriod period, int radius, bool closed, CancellationToken token)
