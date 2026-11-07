@@ -257,6 +257,13 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
                     b.HasKey("Id")
                         .HasName("p_k_business_profiles");
 
