@@ -440,6 +440,79 @@ namespace InstAlertPlatform.API.Migrations
                     b.ToTable("emergency_contacts", (string)null);
                 });
 
+            modelBuilder.Entity("InstAlertPlatform.API.Dashboard.Domain.Model.Aggregates.Report", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BusinessId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("varchar(80)")
+                        .HasColumnName("business_id");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("CutoffAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("cutoff_at");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("generated_at");
+
+                    b.Property<string>("GeneratedByUserId")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("generated_by_user_id");
+
+                    b.Property<string>("GenerationSource")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("generation_source");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("int")
+                        .HasColumnName("schema_version");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<string>("SummaryJson")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("summary_json");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_dashboard_reports");
+
+                    b.HasIndex("BusinessId", "GeneratedAt")
+                        .HasDatabaseName("i_x_dashboard_reports_business_id_generated_at");
+
+                    b.ToTable("dashboard_reports", (string)null);
+                });
+
             modelBuilder.Entity("InstAlertPlatform.API.Mapping.Domain.Model.Aggregates.IncidentProjection", b =>
                 {
                     b.Property<string>("Id")
