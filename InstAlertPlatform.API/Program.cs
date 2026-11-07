@@ -69,6 +69,7 @@ builder.Services.AddScoped<IPayPalWebhookVerifier>(p => p.GetRequiredService<Pay
 builder.Services.AddScoped<IPayPalSubscriptions>(p => p.GetRequiredService<PayPalSubscriptions>());
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Domain.Repositories.IAlertPreferencesRepository, InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Repositories.AlertPreferencesRepository>();
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Domain.Repositories.IAlertRecordRepository, InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Repositories.AlertRecordRepository>();
+builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Domain.Repositories.IIncidentProjectionRepository, InstAlertPlatform.API.Mapping.Infrastructure.Persistence.EntityFrameworkCore.Repositories.IncidentProjectionRepository>();
 builder.Services.AddScoped<InstAlertPlatform.API.Business.Domain.Repositories.IBusinessMemberRepository, InstAlertPlatform.API.Business.Infrastructure.Persistence.EntityFrameworkCore.Repositories.BusinessMemberRepository>();
 builder.Services.AddScoped<InstAlertPlatform.API.Business.Domain.Repositories.IBusinessProfileRepository, InstAlertPlatform.API.Business.Infrastructure.Persistence.EntityFrameworkCore.Repositories.BusinessProfileRepository>();
 builder.Services.AddScoped<InstAlertPlatform.API.Payments.Domain.Repositories.ICheckoutIntentRepository, InstAlertPlatform.API.Payments.Infrastructure.Persistence.EntityFrameworkCore.Repositories.CheckoutIntentRepository>();
@@ -93,6 +94,9 @@ builder.Services.AddScoped<IStaffInvitationCommandService, StaffInvitationComman
 builder.Services.AddScoped<IStaffInvitationQueryService, StaffInvitationQueryService>();
 builder.Services.AddScoped<IAlertCommandService, AlertCommandService>();
 builder.Services.AddScoped<IAlertQueryService, AlertQueryService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.Services.IAlertProjectionCommandService, InstAlertPlatform.API.Mapping.Application.Internal.CommandServices.AlertProjectionCommandService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.Services.IMappingQueryService, InstAlertPlatform.API.Mapping.Application.Internal.QueryServices.MappingQueryService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Shared.Application.Patterns.IIntegrationEventHandler, InstAlertPlatform.API.Mapping.Infrastructure.AlertProjectionHandler>();
 builder.Services.AddScoped<IAlertPreferencesQueryService, AlertPreferencesQueryService>();
 builder.Services.AddScoped<IAlertPreferencesCommandService, AlertPreferencesCommandService>();
 builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
@@ -125,6 +129,7 @@ builder.Services.AddControllers(options => options.Conventions.Add(new KebabCase
 builder.Services.AddOpenApi(options =>
 {
     options.AddOperationTransformer(InstAlertPlatform.API.Alert.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Mapping.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Business.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Contacts.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
