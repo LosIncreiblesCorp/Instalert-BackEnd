@@ -11,6 +11,8 @@ using InstAlertPlatform.API.Notifications.Infrastructure;
 using InstAlertPlatform.API.Notifications.Application.Internal.CommandServices;
 using InstAlertPlatform.API.Notifications.Application.Internal.QueryServices;
 using InstAlertPlatform.API.Notifications.Application.Services;
+using InstAlertPlatform.API.Dashboard.Application.Internal.QueryServices;
+using InstAlertPlatform.API.Dashboard.Application.Services;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Profiles.Application.Internal.CommandServices;
 using InstAlertPlatform.API.Profiles.Application.Internal.QueryServices;
@@ -120,6 +122,8 @@ builder.Services.AddScoped<INotificationQueryService, NotificationQueryService>(
 builder.Services.AddScoped<INotificationCommandService, NotificationCommandService>();
 builder.Services.AddScoped<INotificationPreferencesQueryService, NotificationPreferencesQueryService>();
 builder.Services.AddScoped<INotificationPreferencesCommandService, NotificationPreferencesCommandService>();
+builder.Services.AddScoped<DashboardProjectionBuilder>();
+builder.Services.AddScoped<IDashboardQueryService, DashboardQueryService>();
 builder.Services.AddScoped<IAlertPreferencesQueryService, AlertPreferencesQueryService>();
 builder.Services.AddScoped<IAlertPreferencesCommandService, AlertPreferencesCommandService>();
 builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
@@ -154,6 +158,7 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(InstAlertPlatform.API.Alert.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Mapping.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Notifications.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Dashboard.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Business.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Contacts.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
