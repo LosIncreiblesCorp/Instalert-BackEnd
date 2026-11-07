@@ -37,20 +37,23 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<BusinessProfile>().Property(x => x.OwnerUserId).HasMaxLength(160);
         builder.Entity<BusinessProfile>().Property(x => x.Version).HasMaxLength(36).IsConcurrencyToken();
         builder.Entity<BusinessProfile>().HasIndex(x => x.OwnerUserId);
+        builder.Entity<BusinessProfile>().Property(x => x.SeatRevision).HasDefaultValue(0L);
         builder.Entity<BusinessProfile>().Property(x => x.TaxId).HasConversion(value => value.Value, value => new TaxIdentifier(value)).HasMaxLength(11);
         builder.Entity<BusinessProfile>().HasIndex(x => x.TaxId).IsUnique();
         builder.Entity<BusinessProfile>().Property(x => x.Name).HasMaxLength(150);
         builder.Entity<BusinessProfile>().Property(x => x.Address).HasMaxLength(250);
         builder.Entity<BusinessMember>().ToTable("business_members");
         builder.Entity<BusinessMember>().Property(x => x.BusinessId).IsRequired();
-        builder.Entity<BusinessMember>().Property(x => x.UserId).HasMaxLength(80);
+        builder.Entity<BusinessMember>().Property(x => x.UserId).HasMaxLength(160);
         builder.Entity<BusinessMember>().Property(x => x.DisplayName).HasMaxLength(100);
         builder.Entity<BusinessMember>().Property(x => x.Email).HasMaxLength(254);
-        builder.Entity<BusinessMember>().Property(x => x.Role).HasMaxLength(20);
+        builder.Entity<BusinessMember>().Property(x => x.Role).HasMaxLength(30);
         builder.Entity<BusinessMember>().Property(x => x.Status).HasMaxLength(20);
         builder.Entity<BusinessMember>().HasIndex(x => new { x.BusinessId, x.UserId }).IsUnique();
         builder.Entity<BusinessMember>().HasIndex(x => new { x.BusinessId, x.Email }).IsUnique();
-        builder.Entity<BusinessMember>().HasOne<BusinessProfile>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<BusinessMember>().HasIndex(x => new { x.BusinessId, x.Status }).HasDatabaseName("i_x_business_members_business_id_status");
+        builder.Entity<BusinessMember>().HasIndex(x => new { x.UserId, x.Status }).HasDatabaseName("i_x_business_members_user_id_status");
+        builder.Entity<BusinessMember>().HasOne<BusinessProfile>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("f_k_business_members__business_profile_business_id");
         builder.Entity<StaffInvitation>().ToTable("staff_invitations");
         builder.Entity<StaffInvitation>().Property(x => x.BusinessId).IsRequired();
         builder.Entity<StaffInvitation>().Property(x => x.DisplayName).HasMaxLength(100);
@@ -83,13 +86,19 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<Subscription>().Property(x => x.Status).HasMaxLength(20);
         builder.Entity<Subscription>().HasIndex(x => x.BusinessId).IsUnique();
         builder.Entity<Subscription>().HasIndex(x => x.ProviderSubscriptionId).IsUnique();
+        builder.Entity<Subscription>().HasIndex(x => x.PlanId).HasDatabaseName("i_x_subscriptions_plan_id");
+        builder.Entity<Subscription>().HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("f_k_subscriptions_plans_plan_id");
         builder.Entity<CheckoutIntent>().ToTable("checkout_intents");
         builder.Entity<CheckoutIntent>().Property(x => x.BusinessId).HasMaxLength(80);
         builder.Entity<CheckoutIntent>().Property(x => x.PlanId).HasMaxLength(80);
+        builder.Entity<CheckoutIntent>().HasIndex(x => new { x.BusinessId, x.Completed, x.ExpiresAt }).HasDatabaseName("i_x_checkout_intents_business_id_completed_expires_at");
+        builder.Entity<CheckoutIntent>().HasIndex(x => x.PlanId).HasDatabaseName("i_x_checkout_intents_plan_id");
+        builder.Entity<CheckoutIntent>().HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("f_k_checkout_intents_plans_plan_id");
         builder.Entity<PaymentTransaction>().ToTable("payment_transactions");
         builder.Entity<PaymentTransaction>().Property(x => x.BusinessId).HasMaxLength(80);
         builder.Entity<PaymentTransaction>().Property(x => x.ProviderTransactionId).HasMaxLength(100);
         builder.Entity<PaymentTransaction>().HasIndex(x => x.ProviderTransactionId).IsUnique();
+        builder.Entity<PaymentTransaction>().HasIndex(x => new { x.BusinessId, x.PaidAt }).HasDatabaseName("i_x_payment_transactions_business_id_paid_at");
         builder.Entity<PaymentTransaction>().Property(x => x.Amount).HasPrecision(10, 2);
         builder.Entity<PaymentTransaction>().Property(x => x.Currency).HasMaxLength(3);
         builder.Entity<UserProfile>().ToTable("profiles");
@@ -109,6 +118,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             builder.Entity(entity.ClrType).Property(nameof(AuditedEntity.Id)).HasMaxLength(160);
             builder.Entity(entity.ClrType).Property(nameof(AuditedEntity.Version)).HasMaxLength(36).IsConcurrencyToken();
         }
+
+        builder.Entity<UserProfile>().Property(x => x.Id).HasMaxLength(80);
+        builder.Entity<Plan>().Property(x => x.Id).HasMaxLength(80);
+        builder.Entity<OutboxMessage>().Property(x => x.Id).HasMaxLength(255);
+        builder.Entity<OutboxMessage>().Property(x => x.Version).HasColumnType("longtext");
 
         builder.UseSnakeCaseNamingConvention();
     }
