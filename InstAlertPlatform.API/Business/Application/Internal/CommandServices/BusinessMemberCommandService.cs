@@ -68,7 +68,10 @@ public sealed class BusinessMemberCommandService(IBusinessMemberRepository membe
             var details = command;
             var member = await members.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
             await access.Handle(new RequireBusinessAccessQuery(member.BusinessId.ToString(), actor.UserId, true), cancellationToken);
-            member.Update(details.DisplayName, details.Email);
+            var email = Guard.Email(details.Email);
+            var existing = await members.FindByBusinessIdAndEmailAsync(member.BusinessId.ToString(), email, cancellationToken);
+            Guard.Require(existing.All(candidate => candidate.Id == member.Id), "conflict", "email");
+            member.Update(details.DisplayName, email);
             await work.CompleteAsync(cancellationToken);
             return new Result<MemberSnapshot, EUpdateBusinessMemberError>.Success(ToMemberSnapshot(member));
         }
