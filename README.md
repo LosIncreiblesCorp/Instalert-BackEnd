@@ -37,6 +37,28 @@ Use `GET /api/v1/businesses` for each demo actor to obtain the database-generate
 
 For read-only connection checks, disable `Database__ApplyMigrationsOnStartup`, `DevelopmentData__SeedOnStartup`, `Workers__Enabled` and `Email__Enabled`.
 
+## Staff and personal profiles
+
+Business owns operational memberships and invitation history. An administrator owns one commerce; an employee remains associated with one commerce even while inactive. Registration checks ownership, acceptance checks all memberships, and unique database indexes enforce owner and employee assignment. A normalized pending invitation email can reserve only one commerce at a time; cancellation releases that reservation. Membership deactivation releases the operational seat without deleting the association.
+
+The `EnforceSingleCommerceAssignments` migration adds these unique indexes and a generated pending-email column. Existing duplicate owners, memberships or pending reservations must be reviewed before applying it. The migration does not delete or transfer records to resolve conflicts.
+
+| Method | Route | Operation |
+|---|---|---|
+| GET | `/api/v1/businesses/{id}/seats` | Read server-calculated capacity |
+| GET | `/api/v1/businesses/{id}/members` | Read staff |
+| GET/POST | `/api/v1/businesses/{id}/invitations` | Read or create invitations |
+| PUT | `/api/v1/business-members/{id}` | Edit employee name and email |
+| POST | `/api/v1/business-members/{id}/activation` | Activate with available capacity |
+| POST | `/api/v1/business-members/{id}/deactivation` | Deactivate while preserving the association |
+| PUT | `/api/v1/staff-invitations/{id}` | Edit a pending invitation |
+| POST | `/api/v1/staff-invitations/{id}/cancellation` | Cancel and release the reserved seat |
+| POST | `/api/v1/staff-invitations/{id}/resend` | Request delivery again |
+| GET/PUT | `/api/v1/profiles/{userId}` | Read or update the caller's personal data |
+| GET/PUT | `/api/v1/profiles/{userId}/preferences` | Read or update the caller's locale |
+
+The server checks commerce ownership, capacity, transitions and duplicate email reservations. Personal profiles preserve the textual eight-digit DNI; the optional phone is normalized to 7–15 digits with an optional leading `+`. This demonstration keeps two fixed actors. Invitations do not create credentials; employee account provisioning requires IAM in a later delivery.
+
 ## Payments API
 
 All business subscription routes require `User-Id` in Development; use `synthetic-admin` for the seeded business. The server checks business ownership and validates the selected plan against the configured PayPal plan before returning checkout data.

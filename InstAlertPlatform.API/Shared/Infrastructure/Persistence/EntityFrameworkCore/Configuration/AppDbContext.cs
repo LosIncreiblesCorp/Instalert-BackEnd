@@ -47,7 +47,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<BusinessProfile>().Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Entity<BusinessProfile>().Property(x => x.OwnerUserId).HasMaxLength(160);
         builder.Entity<BusinessProfile>().Property(x => x.Version).HasMaxLength(36).IsConcurrencyToken();
-        builder.Entity<BusinessProfile>().HasIndex(x => x.OwnerUserId);
+        builder.Entity<BusinessProfile>().HasIndex(x => x.OwnerUserId).IsUnique();
         builder.Entity<BusinessProfile>().Property(x => x.SeatRevision).HasDefaultValue(0L);
         builder.Entity<BusinessProfile>().Property(x => x.TaxId).HasConversion(value => value.Value, value => new TaxIdentifier(value)).HasMaxLength(11);
         builder.Entity<BusinessProfile>().HasIndex(x => x.TaxId).IsUnique();
@@ -60,7 +60,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<BusinessMember>().Property(x => x.Email).HasMaxLength(254);
         builder.Entity<BusinessMember>().Property(x => x.Role).HasMaxLength(30);
         builder.Entity<BusinessMember>().Property(x => x.Status).HasMaxLength(20);
-        builder.Entity<BusinessMember>().HasIndex(x => new { x.BusinessId, x.UserId }).IsUnique();
+        builder.Entity<BusinessMember>().HasIndex(x => x.UserId).IsUnique();
         builder.Entity<BusinessMember>().HasIndex(x => new { x.BusinessId, x.Email }).IsUnique();
         builder.Entity<BusinessMember>().HasIndex(x => new { x.BusinessId, x.Status }).HasDatabaseName("i_x_business_members_business_id_status");
         builder.Entity<BusinessMember>().HasIndex(x => new { x.UserId, x.Status }).HasDatabaseName("i_x_business_members_user_id_status");
@@ -70,6 +70,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<StaffInvitation>().Property(x => x.DisplayName).HasMaxLength(100);
         builder.Entity<StaffInvitation>().Property(x => x.Email).HasMaxLength(254);
         builder.Entity<StaffInvitation>().Property(x => x.Status).HasMaxLength(20);
+        builder.Entity<StaffInvitation>().Property<string>("PendingEmail").HasMaxLength(254)
+            .HasComputedColumnSql("CASE WHEN `status` = 'pending' THEN `email` ELSE NULL END", stored: true);
+        builder.Entity<StaffInvitation>().HasIndex("PendingEmail").IsUnique();
         builder.Entity<StaffInvitation>().HasIndex(x => new { x.BusinessId, x.Status });
         builder.Entity<StaffInvitation>().HasOne<BusinessProfile>().WithMany().HasForeignKey(x => x.BusinessId).OnDelete(DeleteBehavior.Restrict);
         builder.Entity<EmergencyContact>().ToTable("emergency_contacts");
