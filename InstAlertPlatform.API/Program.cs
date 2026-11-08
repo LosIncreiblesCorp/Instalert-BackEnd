@@ -171,10 +171,10 @@ builder.Services.AddOpenApi(options =>
     options.AddSchemaTransformer(OpenApiLocalizationAssembler.TransformSchemaAsync);
     options.AddOperationTransformer((operation, context, token) =>
     {
-        if (builder.Environment.IsDevelopment())
+        if (builder.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Demo:Enabled"))
         {
             operation.Parameters ??= [];
-            operation.Parameters.Add(new OpenApiParameter { Name = "User-Id", In = ParameterLocation.Header, Required = false, Description = "Configured synthetic caller; accepted only when DevelopmentActors:Enabled=true in Development. Not production authentication.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
+            operation.Parameters.Add(new OpenApiParameter { Name = "User-Id", In = ParameterLocation.Header, Required = false, Description = "Use synthetic-admin or synthetic-employee to try the API.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
         }
 
         return Task.CompletedTask;
@@ -200,7 +200,7 @@ if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Dat
 }
 
 var seedOnly = args.Contains("--seed-development");
-if (seedOnly || app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("DevelopmentData:SeedOnStartup"))
+if (seedOnly || (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Demo:Enabled")) && builder.Configuration.GetValue<bool>("DevelopmentData:SeedOnStartup"))
 {
     using var scope = app.Services.CreateScope();
     await scope.ServiceProvider.GetRequiredService<DevelopmentDataSeeder>().Seed(CancellationToken.None);
@@ -223,7 +223,6 @@ if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Doc
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
-    app.MapGet("/swagger/index.html", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
 }
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" })).WithTags("Health");
