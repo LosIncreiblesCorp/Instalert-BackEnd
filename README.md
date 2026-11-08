@@ -1,6 +1,6 @@
 # InstAlert Web Services
 
-ASP.NET Core REST API using C#, EF Core and MySQL. The backend follows the current CatchUp classroom structure: explicit command/query services, operation error enums, repositories, unit of work, REST resources and assemblers. Shared provides technical support. Business owns commerce profiles, employee memberships and invitations; personal data belongs to Profiles; subscriptions and billing records belong to Payments. This branch adds PayPal subscription checkout, server-side verification, plan changes, cancellation, billing history and webhook reconciliation.
+ASP.NET Core REST API using C#, EF Core and MySQL. The backend uses explicit command/query services, operation error enums, repositories, unit of work, REST resources and assemblers. Shared provides technical support. Business owns commerce profiles, employee memberships and invitations; personal data belongs to Profiles; subscriptions and billing records belong to Payments. This branch adds PayPal subscription checkout, server-side verification, plan changes, cancellation, billing history and webhook reconciliation.
 
 ## Run locally
 
@@ -12,9 +12,11 @@ dotnet ef database update --project InstAlertPlatform.API
 dotnet run --project InstAlertPlatform.API --launch-profile http
 ```
 
-The configuration files follow the classroom example: `appsettings.json` provides the base settings, `appsettings.Development.json` provides local development settings, and `appsettings.Production.json` uses `%DATABASE_URL%`, `%DATABASE_USER%`, `%DATABASE_PASSWORD%` and `%DATABASE_SCHEMA%` in its connection template. `Program.cs` expands these environment variables before configuring MySQL. `DATABASE_URL` is the MySQL server host. Development can apply migrations on startup when `Database:ApplyMigrationsOnStartup` is enabled and the connection is configured. Production never applies them automatically. Configure `Cors:AllowedOrigins` for browser access; the development configuration permits the local frontend on port 5193.
+Configuration uses the standard ASP.NET files: `appsettings.json`, `appsettings.Development.json` and `appsettings.Production.json`. Configure the local MySQL connection and provider values in the existing Development settings. Environment variables and command-line arguments can override them. Production uses the `%DATABASE_URL%`, `%DATABASE_USER%`, `%DATABASE_PASSWORD%` and `%DATABASE_SCHEMA%` connection template, or `ConnectionStrings__DefaultConnection`.
 
-OpenAPI: `http://localhost:5211/openapi/v1.json`. Scalar: `http://localhost:5211/scalar/v1`. English (`en-US`) is the default; `Accept-Language: es-419` selects Latin American Spanish for messages and operation documentation.
+The HTTP launch profile uses port 5221. Vite uses port 5173; Development CORS allows localhost and 127.0.0.1 on that port and the existing 5192/5193 ports. Set `Cors__AllowedOrigins__0` to the exact published frontend origin for a demonstration deployment. There is no default public deployment URL. Database migrations remain explicit outside Development; review `Database:ApplyMigrationsOnStartup`, workers and mail flags before running locally.
+
+OpenAPI: `http://localhost:5221/openapi/v1.json`. Scalar: `http://localhost:5221/scalar/v1`. English (`en-US`) is the default; `Accept-Language: es-419` selects Latin American Spanish for messages and operation documentation.
 
 ## Business profile API
 
@@ -27,9 +29,13 @@ OpenAPI: `http://localhost:5211/openapi/v1.json`. Scalar: `http://localhost:5211
 
 Registration requires an eleven-digit textual `taxId`, `name`, `address`, `latitude` and `longitude`. Name and address limits are 150 and 250 characters. Coordinates must be finite and within latitude/longitude bounds. The registered tax identifier is immutable. The database enforces its uniqueness. Public IDs are serialized as strings; audit dates are assigned by the server and stored in UTC. Registration returns 201 and a Location header; empty lists return 200. Invalid requests return localized ProblemDetails, with field errors for model validation.
 
-For local development without IAM, the `User-Id` header accepts only configured synthetic identities when `DevelopmentActors:Enabled` is true. `synthetic-admin` is the configured development administrator; `synthetic-employee` has no administrator privileges. The header is rejected outside Development. This delivery does not implement sign-in, credentials or production authentication. Ownership checks remain server-side, and the frontend role selection does not grant permissions.
+This delivery uses two demonstration actors, `synthetic-admin` and `synthetic-employee`, selected through the `User-Id` header. In Development, `DevelopmentActors:Enabled=true` enables them. A published demonstration running in Production must explicitly set `Demo__Enabled=true`; with this flag disabled, Production rejects these headers. The selector is not authentication, and this delivery does not create IAM accounts or credentials. The actor lists and administrator role mapping are defined in the public base settings and continue to apply in either environment.
 
-In Development, `DevelopmentData:SeedOnStartup` creates an idempotent synthetic business owned by `synthetic-admin`, an active membership for `synthetic-employee`, and a 30-day simulated Essential subscription when those records do not already exist. Existing records are preserved. The business receives its database-generated ID on first startup; call `GET /api/v1/businesses` with `User-Id: synthetic-admin` or `User-Id: synthetic-employee` to retrieve it. No IAM accounts, credentials, or real payments are created.
+`DevelopmentData:SeedOnStartup` loads the two profiles, a single owned commerce, the employee membership and the existing simulated Essential entitlement. Alternatively, run `dotnet run --project InstAlertPlatform.API --no-launch-profile -- --environment Development --seed-development true` after applying migrations. Production seeding requires explicit demo mode; startup seeding also requires `DevelopmentData__SeedOnStartup=true`. The seed reuses the administrator's existing commerce, preserves an inactive membership and stops if the fixture employee is assigned elsewhere or fixture ownership is ambiguous. It does not move employees or remove existing data.
+
+Use `GET /api/v1/businesses` for each demo actor to obtain the database-generated commerce ID. `GET /api/v1/business-members/me` returns the employee's association and status. The frontend connection context uses these existing endpoints rather than a fixed commerce ID.
+
+For read-only connection checks, disable `Database__ApplyMigrationsOnStartup`, `DevelopmentData__SeedOnStartup`, `Workers__Enabled` and `Email__Enabled`.
 
 ## Payments API
 
