@@ -5,5 +5,6 @@ using InstAlertPlatform.API.Shared.Domain.Repositories;
 namespace InstAlertPlatform.API.Business.Domain.Repositories;
 public interface IBusinessProfileRepository : IBaseRepository<BusinessProfile>
 {
+    Task<List<BusinessProfile>> FindByOwnerUserIdAsync(string ownerUserId, CancellationToken cancellationToken = default);
     Task<List<BusinessProfile>> FindByTaxIdAsync(TaxIdentifier taxId, CancellationToken cancellationToken = default);
 }
