@@ -109,6 +109,21 @@ The operational employee manages only their own emergency contacts. In Developme
 
 Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The caller determines ownership; request bodies do not choose an employee or provide audit timestamps. Names and relationships are trimmed, phones are normalized to 7–15 digits with an optional leading `+`, empty email becomes `null`, and notes are limited to 140 characters. Inactive memberships receive 403 for reads and writes, while foreign or missing contact IDs return 404. Invalid updates preserve the saved record. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled in F09.
 
+## Notifications API
+
+The inbox is scoped to the caller and an accessible commerce. Both demonstration roles use the same contract; inactive memberships cannot read or update their former commerce's notifications or preferences.
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/v1/notifications?businessId={id}&page=1&pageSize=100` | Read the caller's paginated inbox |
+| POST | `/api/v1/notifications/{id}/reading` | Mark a received notification as read |
+| GET/PUT | `/api/v1/notification-preferences/{userId}?businessId={id}` | Read or save the caller's nearby-alert preferences |
+| GET | `/api/v1/notifications/deliveries` | Read the caller's external delivery states |
+
+Inbox pages use newest creation time first and ID as a stable tie-breaker, with page sizes from 1 to 100. Reading is idempotent: the server assigns the first read time and rejects another recipient's ID with 404. Preference changes contain only `nearbyAlertsEnabled` and `nearbyRadiusMeters`, accepting 100, 500 or 1000 meters. Invalid changes preserve the previous configuration.
+
+`Workers__Enabled=true` enables processing of committed alert events into in-app notifications. The backend determines recipients, active membership, preferences and distance from saved commerce coordinates; the browser does not create these records. Receipt is retained after a panic is resolved or preferences change. Email delivery additionally requires the separate Brevo and Email configuration; disabling Email does not disable the in-app inbox.
+
 ## Verification
 
 ```powershell
