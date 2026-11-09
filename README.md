@@ -75,6 +75,8 @@ The server checks commerce ownership, capacity, transitions and duplicate email 
 
 Cancelling the browser countdown discards its preparation and does not call confirmation. Preparations do not persist alerts, publish alert events or queue deliveries. Confirmation verifies the protected user/commerce scope and server time; retrying a previously confirmed token returns that record, including when its preparation period has expired. An unused expired token is rejected.
 
+Commerce members may read history; only an alert's creator can modify its location, resolve it or complete its report. Resolution is idempotent, completed reports cannot be edited, and occurrence dates must be within the MySQL UTC range and not in the future. Alert events are published only after persisted changes; external notification delivery is handled by Notifications.
+
 ## Payments API
 
 All business subscription routes require `User-Id` in Development; use `synthetic-admin` for the seeded business. The server checks business ownership and validates the selected plan against the configured PayPal plan before returning checkout data.

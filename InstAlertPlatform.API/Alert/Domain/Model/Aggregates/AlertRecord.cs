@@ -45,7 +45,7 @@ public sealed partial class AlertRecord : AuditedEntity
     public static AlertRecord Report(string businessId, string userId, string kind, string category, string description, string location, double? lat, double? lng, DateTimeOffset moment, DateTimeOffset now)
     {
         Guard.Require(kind is "past-incident" or "suspicious-activity" or "other-situation", "validation", "kind");
-        Guard.Require(moment.Year >= 1000 && moment <= now, "validation", "moment");
+        Guard.Require(moment.UtcDateTime.Year >= 1000 && moment <= now, "validation", "moment");
         var a = new AlertRecord
         {
             BusinessId = businessId,
@@ -87,6 +87,7 @@ public sealed partial class AlertRecord : AuditedEntity
     public void Draft(string category, string description, string location, double? lat, double? lng, DateTimeOffset? moment)
     {
         Guard.Require(Kind == "panic" && Status == "resolved" && ReportStatus == "pending", "transition");
+        Guard.Require(moment is null || moment.Value.UtcDateTime.Year >= 1000, "validation", "moment");
         SetDetails(category, description, location, lat, lng, false);
         Moment = moment;
         Revision++;
