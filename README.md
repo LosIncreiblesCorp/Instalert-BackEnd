@@ -27,7 +27,7 @@ OpenAPI: `http://localhost:5221/openapi/v1.json`. Scalar: `http://localhost:5221
 | GET | `/api/v1/businesses/{id}` | Read an owned business |
 | PUT | `/api/v1/businesses/{id}` | Update its name, address and coordinates |
 
-Registration requires an eleven-digit textual `taxId`, `name`, `address`, `latitude` and `longitude`. Name and address limits are 150 and 250 characters. Coordinates must be finite and within latitude/longitude bounds. The registered tax identifier is immutable. The database enforces its uniqueness. Public IDs are serialized as strings; audit dates are assigned by the server and stored in UTC. Registration returns 201 and a Location header; empty lists return 200. Invalid requests return localized ProblemDetails, with field errors for model validation.
+Registration requires an eleven-digit textual `taxId`, `name`, `address`, `latitude` and `longitude`. Name and address limits are 150 and 250 characters. Coordinates must be finite and within latitude/longitude bounds. The registered tax identifier is immutable. The database enforces its uniqueness. Business profile responses omit the internal concurrency stamp; EF Core retains it in persistence. Public IDs are serialized as strings; audit dates are assigned by the server and stored in UTC. Registration returns 201 and a Location header; empty lists return 200. Invalid requests return localized ProblemDetails, with field errors for model validation.
 
 This delivery uses two demonstration actors, `synthetic-admin` and `synthetic-employee`, selected through the `User-Id` header. In Development, `DevelopmentActors:Enabled=true` enables them. A published demonstration running in Production must explicitly set `Demo__Enabled=true`; with this flag disabled, Production rejects these headers. The selector is not authentication, and this delivery does not create IAM accounts or credentials. The actor lists and administrator role mapping are defined in the public base settings and continue to apply in either environment.
 
@@ -73,7 +73,7 @@ The server checks commerce ownership, capacity, transitions and duplicate email 
 | POST | `/api/v1/alerts/reports` | Submit a past incident, suspicious activity or other situation |
 | GET/PUT | `/api/v1/alert-preferences/{userId}` | Read or save the caller's 1–60 second grace period |
 
-Cancelling the browser countdown discards its preparation and does not call confirmation. Preparations do not persist alerts, publish alert events or queue deliveries. Confirmation verifies the protected user/commerce scope and server time; retrying a previously confirmed token returns that record, including when its preparation period has expired. An unused expired token is rejected.
+Cancelling the browser countdown discards its preparation and does not call confirmation. Preparations do not persist alerts, publish alert events or queue deliveries. Confirmation verifies the protected user/commerce scope and server time; retrying a previously confirmed token returns that record, including when its preparation period has expired. An unused expired token is rejected. Public alert responses omit event revisions; internal alert facts retain them for ordered Mapping and Notifications processing.
 
 Commerce members may read history; only an alert's creator can modify its location, resolve it or complete its report. Resolution is idempotent, completed reports cannot be edited, and occurrence dates must be within the MySQL UTC range and not in the future. Alert events are published only after persisted changes; external notification delivery is handled by Notifications.
 
@@ -107,7 +107,7 @@ The operational employee manages only their own emergency contacts. In Developme
 | PUT | `/api/v1/emergency-contacts/{id}` | Update an owned contact |
 | DELETE | `/api/v1/emergency-contacts/{id}` | Delete an owned contact |
 
-Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled in F09.
+Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The caller determines ownership; request bodies do not choose an employee or provide audit timestamps. Names and relationships are trimmed, phones are normalized to 7–15 digits with an optional leading `+`, empty email becomes `null`, and notes are limited to 140 characters. Inactive memberships receive 403 for reads and writes, while foreign or missing contact IDs return 404. Invalid updates preserve the saved record. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled in F09.
 
 ## Verification
 
