@@ -12,6 +12,7 @@ public sealed class PanicPreparationTokens(IDataProtectionProvider provider) : I
     public string Protect(PanicPreparation value) => protector.Protect(JsonSerializer.Serialize(value));
     public PanicPreparation Unprotect(string token)
     {
+        Guard.Text(token, 10000, "preparationToken");
         try
         {
             return JsonSerializer.Deserialize<PanicPreparation>(protector.Unprotect(token)) ?? throw new DomainException("validation");

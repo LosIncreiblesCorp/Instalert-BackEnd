@@ -59,6 +59,22 @@ The `EnforceSingleCommerceAssignments` migration adds these unique indexes and a
 
 The server checks commerce ownership, capacity, transitions and duplicate email reservations. Personal profiles preserve the textual eight-digit DNI; the optional phone is normalized to 7–15 digits with an optional leading `+`. This demonstration keeps two fixed actors. Invitations do not create credentials; employee account provisioning requires IAM in a later delivery.
 
+## Alert lifecycle
+
+| Method | Route | Operation |
+|---|---|---|
+| GET | `/api/v1/alerts?businessId={id}&page=1&pageSize=100` | Read authorized commerce history |
+| POST | `/api/v1/alerts/panic-preparations` | Issue a scoped preparation without creating an alert |
+| POST | `/api/v1/alerts/panic` | Confirm after the server-issued grace period |
+| PUT | `/api/v1/alerts/{id}/location` | Update the caller's active panic location |
+| POST | `/api/v1/alerts/{id}/resolution` | Resolve the caller's panic, leaving its report pending |
+| PUT | `/api/v1/alerts/{id}/report-draft` | Save details of the caller's pending report |
+| POST | `/api/v1/alerts/{id}/report-completion` | Complete the report while retaining resolved status |
+| POST | `/api/v1/alerts/reports` | Submit a past incident, suspicious activity or other situation |
+| GET/PUT | `/api/v1/alert-preferences/{userId}` | Read or save the caller's 1–60 second grace period |
+
+Cancelling the browser countdown discards its preparation and does not call confirmation. Preparations do not persist alerts, publish alert events or queue deliveries. Confirmation verifies the protected user/commerce scope and server time; retrying a previously confirmed token returns that record, including when its preparation period has expired. An unused expired token is rejected.
+
 ## Payments API
 
 All business subscription routes require `User-Id` in Development; use `synthetic-admin` for the seeded business. The server checks business ownership and validates the selected plan against the configured PayPal plan before returning checkout data.
