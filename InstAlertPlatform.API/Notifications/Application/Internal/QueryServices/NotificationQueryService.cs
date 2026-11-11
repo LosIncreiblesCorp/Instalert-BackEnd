@@ -18,7 +18,7 @@ public sealed class NotificationQueryService(IReceivedNotificationRepository not
         var pageSize = query.PageSize;
         await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, false), cancellationToken);
         Guard.Require(page > 0 && pageSize is >= 1 and <= 100, "validation", "pagination");
-        return (await notifications.FindByRecipientUserIdAndTargetBusinessIdAsync(actor.UserId, businessId, cancellationToken)).OrderByDescending(n => n.CreatedAt).Skip((int)Math.Min(int.MaxValue, ((long)page - 1) * pageSize)).Take(pageSize).Select(ToNotificationSnapshot).ToList();
+        return (await notifications.FindByRecipientUserIdAndTargetBusinessIdAsync(actor.UserId, businessId, cancellationToken)).OrderByDescending(n => n.CreatedAt).ThenBy(n => n.Id).Skip((int)Math.Min(int.MaxValue, ((long)page - 1) * pageSize)).Take(pageSize).Select(ToNotificationSnapshot).ToList();
     }
 
     public async Task<List<DeliveryStatusSnapshot>> Handle(GetDeliveryStatusesQuery query, CancellationToken cancellationToken = default)

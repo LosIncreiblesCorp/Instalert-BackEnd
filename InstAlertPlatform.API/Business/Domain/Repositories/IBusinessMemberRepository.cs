@@ -4,6 +4,7 @@ using InstAlertPlatform.API.Shared.Domain.Repositories;
 namespace InstAlertPlatform.API.Business.Domain.Repositories;
 public interface IBusinessMemberRepository : IBaseRepository<BusinessMember>
 {
+    Task<List<BusinessMember>> FindByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<List<BusinessMember>> FindByBusinessIdAndEmailAsync(string businessId, string email, CancellationToken cancellationToken = default);
     Task<List<BusinessMember>> FindByBusinessIdAndStatusAsync(string businessId, string status, CancellationToken cancellationToken = default);
     Task<List<BusinessMember>> FindByBusinessIdAndUserIdAndStatusAsync(string businessId, string userId, string status, CancellationToken cancellationToken = default);

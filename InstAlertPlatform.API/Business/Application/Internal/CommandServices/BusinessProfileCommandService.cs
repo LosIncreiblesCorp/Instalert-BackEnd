@@ -16,10 +16,11 @@ public sealed class BusinessProfileCommandService(IBusinessProfileRepository bus
         try
         {
             Guard.Require(actor.IsAdministrator, "forbidden");
+            Guard.Require((await businesses.FindByOwnerUserIdAsync(actor.UserId, cancellationToken)).Count == 0, "conflict", "ownerUserId");
             var details = command;
             Guard.Coordinates(details.Latitude, details.Longitude, true);
             var businessProfile = new BusinessProfile(actor.UserId, details.TaxId, details.Name, details.Address, details.Latitude!.Value, details.Longitude!.Value);
-            Guard.Require((await businesses.FindByTaxIdAsync(businessProfile.TaxId, cancellationToken)).Count == 0, "conflict");
+            Guard.Require((await businesses.FindByTaxIdAsync(businessProfile.TaxId, cancellationToken)).Count == 0, "conflict", "taxId");
             await businesses.AddAsync(businessProfile, cancellationToken);
             await work.CompleteAsync(cancellationToken);
             return new Result<BusinessSnapshot, ECreateBusinessError>.Success(ToBusinessSnapshot(businessProfile));

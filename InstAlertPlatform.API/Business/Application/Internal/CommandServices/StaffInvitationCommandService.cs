@@ -22,8 +22,8 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
             await access.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, true), cancellationToken);
             await RequireSeat(businessId, cancellationToken);
             var invitation = new StaffInvitation(businessId, details.DisplayName, details.Email, clock.GetUtcNow());
-            Guard.Require((await invitations.FindByBusinessIdAndEmailAndStatusAsync(businessId, invitation.Email, "pending", cancellationToken)).Count == 0, "conflict");
-            Guard.Require((await members.FindByBusinessIdAndEmailAsync(businessId, invitation.Email, cancellationToken)).Count == 0, "conflict");
+            Guard.Require((await invitations.FindPendingByEmailAsync(invitation.Email, cancellationToken)).Count == 0, "conflict", "email");
+            Guard.Require((await members.FindByEmailAsync(invitation.Email, cancellationToken)).Count == 0, "conflict", "email");
             var seatRevisionResult = (await revisions.Handle(new TouchBusinessSeatsCommand(businessId), cancellationToken));
             if (seatRevisionResult is Result<bool, ETouchBusinessSeatsError>.Failure seatRevisionFailure)
                 throw new DomainException(seatRevisionFailure.Error switch
@@ -66,12 +66,15 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
         {
             var id = command.Id;
             var invitation = await invitations.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
+            Guard.Require(!actor.IsAdministrator, "forbidden");
             var email = actor.VerifiedEmail;
             Guard.Require(!string.IsNullOrWhiteSpace(email), "identity_unavailable");
             Guard.Require(string.Equals(email, invitation.Email, StringComparison.OrdinalIgnoreCase), "forbidden");
             var current = (await members.FindByBusinessIdAndUserIdAsync(invitation.BusinessId.ToString(), actor.UserId, cancellationToken)).SingleOrDefault();
             if (invitation.Status == "accepted" && current is not null)
                 return new Result<MemberSnapshot, EAcceptStaffInvitationError>.Success(ToMemberSnapshot(current));
+            Guard.Require((await members.FindByUserIdAsync(actor.UserId, cancellationToken)).Count == 0, "conflict", "userId");
+            Guard.Require((await members.FindByEmailAsync(invitation.Email, cancellationToken)).Count == 0, "conflict", "email");
             Guard.Require(invitation.Status == "pending" && current is null, "transition");
             var plan = await limits.Handle(new GetPlanLimitsQuery(invitation.BusinessId.ToString()), cancellationToken);
             var usage = await access.Handle(new GetBusinessSeatUsageQuery(invitation.BusinessId.ToString()), cancellationToken);
@@ -198,8 +201,8 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
             var invitation = await invitations.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
             await access.Handle(new RequireBusinessAccessQuery(invitation.BusinessId.ToString(), actor.UserId, true), cancellationToken);
             var email = Guard.Email(command.Email);
-            Guard.Require((await invitations.FindByBusinessIdAndNotIdAndEmailAndStatusAsync(invitation.BusinessId.ToString(), invitation.Id, email, "pending", cancellationToken)).Count == 0, "conflict");
-            Guard.Require((await members.FindByBusinessIdAndEmailAsync(invitation.BusinessId.ToString(), email, cancellationToken)).Count == 0, "conflict");
+            Guard.Require((await invitations.FindPendingByEmailAsync(email, cancellationToken)).All(candidate => candidate.Id == invitation.Id), "conflict", "email");
+            Guard.Require((await members.FindByEmailAsync(email, cancellationToken)).Count == 0, "conflict", "email");
             invitation.Update(command.DisplayName, email);
             await work.CompleteAsync(cancellationToken);
             return new Result<InvitationSnapshot, EUpdateStaffInvitationError>.Success(ToInvitationSnapshot(invitation));

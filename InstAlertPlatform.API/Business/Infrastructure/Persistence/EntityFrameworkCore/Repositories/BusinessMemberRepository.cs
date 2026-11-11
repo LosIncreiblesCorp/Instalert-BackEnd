@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace InstAlertPlatform.API.Business.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 public sealed class BusinessMemberRepository(AppDbContext context) : BaseRepository<BusinessMember>(context), IBusinessMemberRepository
 {
+    public Task<List<BusinessMember>> FindByEmailAsync(string email, CancellationToken cancellationToken = default) => Context.Set<BusinessMember>().Where(entity => entity.Email == email).ToListAsync(cancellationToken);
     public Task<List<BusinessMember>> FindByBusinessIdAndEmailAsync(string businessId, string email, CancellationToken cancellationToken = default) => Context.Set<BusinessMember>().Where(entity => entity.BusinessId == int.Parse(businessId) && entity.Email == email).ToListAsync(cancellationToken);
     public Task<List<BusinessMember>> FindByBusinessIdAndStatusAsync(string businessId, string status, CancellationToken cancellationToken = default) => Context.Set<BusinessMember>().Where(entity => entity.BusinessId == int.Parse(businessId) && entity.Status == status).ToListAsync(cancellationToken);
     public Task<List<BusinessMember>> FindByBusinessIdAndUserIdAndStatusAsync(string businessId, string userId, string status, CancellationToken cancellationToken = default) => Context.Set<BusinessMember>().Where(entity => entity.BusinessId == int.Parse(businessId) && entity.UserId == userId && entity.Status == status).ToListAsync(cancellationToken);
