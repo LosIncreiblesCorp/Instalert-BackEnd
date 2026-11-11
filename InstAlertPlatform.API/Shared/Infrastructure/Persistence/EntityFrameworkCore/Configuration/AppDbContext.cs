@@ -35,8 +35,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.ApplyNotificationsConfiguration();
         builder.Entity<Report>().ToTable("dashboard_reports");
         builder.Entity<Report>().Property(x => x.BusinessId).HasMaxLength(80).IsRequired();
-        builder.Entity<Report>().Property(x => x.StartDate).HasColumnType("date");
-        builder.Entity<Report>().Property(x => x.EndDate).HasColumnType("date");
+        builder.Entity<Report>().Property(x => x.StartDate).HasConversion(value => value.ToDateTime(TimeOnly.MinValue), value => DateOnly.FromDateTime(value)).HasColumnType("date");
+        builder.Entity<Report>().Property(x => x.EndDate).HasConversion(value => value.ToDateTime(TimeOnly.MinValue), value => DateOnly.FromDateTime(value)).HasColumnType("date");
         builder.Entity<Report>().Property(x => x.SummaryJson).HasColumnType("longtext").IsRequired();
         builder.Entity<Report>().Property(x => x.GenerationSource).HasMaxLength(20).IsRequired();
         builder.Entity<Report>().Property(x => x.GeneratedByUserId).HasMaxLength(160);
