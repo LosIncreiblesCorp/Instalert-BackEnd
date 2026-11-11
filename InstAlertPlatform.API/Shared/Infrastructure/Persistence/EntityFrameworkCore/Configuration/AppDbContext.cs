@@ -1,5 +1,3 @@
-using InstAlertPlatform.API.Profiles.Domain.Model.ValueObjects;
-using InstAlertPlatform.API.Profiles.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
@@ -7,6 +5,7 @@ using InstAlertPlatform.API.Mapping.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Dashboard.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Contacts.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
+using InstAlertPlatform.API.Profiles.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Mapping.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Notifications.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Shared.Domain.Model;
@@ -97,13 +96,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<PaymentTransaction>().HasIndex(x => new { x.BusinessId, x.PaidAt }).HasDatabaseName("i_x_payment_transactions_business_id_paid_at");
         builder.Entity<PaymentTransaction>().Property(x => x.Amount).HasPrecision(10, 2);
         builder.Entity<PaymentTransaction>().Property(x => x.Currency).HasMaxLength(3);
-        builder.Entity<UserProfile>().ToTable("profiles");
-        builder.Entity<UserProfile>().Property(p => p.FirstName).HasMaxLength(100).IsRequired();
-        builder.Entity<UserProfile>().Property(p => p.LastName).HasMaxLength(100).IsRequired();
-        builder.Entity<UserProfile>().Property(p => p.Dni).HasConversion(value => value.Value, value => new NationalIdentityNumber(value)).HasMaxLength(8).IsRequired();
-        builder.Entity<UserProfile>().Property(p => p.Phone).HasMaxLength(16);
-        builder.Entity<UserPreferences>().ToTable("user_preferences");
-        builder.Entity<UserPreferences>().Property(p => p.Locale).HasConversion(value => value.Value, value => new ApplicationLocale(value)).HasMaxLength(6).IsRequired();
+        builder.ApplyProfilesConfiguration();
         builder.Entity<OutboxMessage>().ToTable("outbox_messages");
         builder.Entity<OutboxMessage>().Property(x => x.EventType).HasMaxLength(100);
         builder.Entity<OutboxMessage>().Property(x => x.Payload).HasColumnType("longtext");
@@ -115,7 +108,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             builder.Entity(entity.ClrType).Property(nameof(AuditedEntity.Version)).HasMaxLength(36).IsConcurrencyToken();
         }
 
-        builder.Entity<UserProfile>().Property(x => x.Id).HasMaxLength(80);
+        builder.ApplyProfilesFinalConfiguration();
         builder.Entity<Plan>().Property(x => x.Id).HasMaxLength(80);
         builder.Entity<OutboxMessage>().Property(x => x.Id).HasMaxLength(255);
         builder.Entity<OutboxMessage>().Property(x => x.Version).HasColumnType("longtext");
