@@ -160,6 +160,11 @@ builder.Services.AddControllers(options => options.Conventions.Add(new KebabCase
 });
 builder.Services.AddOpenApi(options =>
 {
+    options.AddDocumentTransformer((document, context, token) =>
+    {
+        document.Servers = [new OpenApiServer { Url = "/" }];
+        return Task.CompletedTask;
+    });
     options.AddOperationTransformer(InstAlertPlatform.API.Alert.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Mapping.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Notifications.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);

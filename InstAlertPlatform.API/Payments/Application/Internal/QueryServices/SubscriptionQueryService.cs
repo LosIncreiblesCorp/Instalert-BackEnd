@@ -17,7 +17,8 @@ public sealed class SubscriptionQueryService(ISubscriptionRepository subscriptio
         await business.Handle(new RequireBusinessAccessQuery(id, actor.UserId, true), cancellationToken);
         var s = (await subscriptions.FindByBusinessIdAsync(id, cancellationToken)).SingleOrDefault();
         if (s?.ProviderSubscriptionId.StartsWith("synthetic-development-", StringComparison.Ordinal) == true &&
-            (!environment.IsDevelopment() || !configuration.GetValue<bool>("DevelopmentData:SeedOnStartup")))
+            ((!environment.IsDevelopment() && !configuration.GetValue<bool>("Demo:Enabled")) ||
+             !configuration.GetValue<bool>("DevelopmentData:SeedOnStartup")))
             return null;
         return s is null ? null : ToSubscriptionSnapshot(clock.GetUtcNow(), s);
     }

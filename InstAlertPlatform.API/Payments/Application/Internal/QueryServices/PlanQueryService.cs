@@ -19,7 +19,8 @@ public sealed class PlanQueryService(IPlanRepository plans, ISubscriptionReposit
         var businessId = query.BusinessId;
         var active = (await subscriptions.FindByBusinessIdAsync(businessId, token)).SingleOrDefault();
         if (active?.ProviderSubscriptionId.StartsWith("synthetic-development-", StringComparison.Ordinal) == true &&
-            (!environment.IsDevelopment() || !configuration.GetValue<bool>("DevelopmentData:SeedOnStartup")))
+            ((!environment.IsDevelopment() && !configuration.GetValue<bool>("Demo:Enabled")) ||
+             !configuration.GetValue<bool>("DevelopmentData:SeedOnStartup")))
             return new(0, null, false);
         if (active is null || !active.IsEntitled(clock.GetUtcNow()))
             return new(0, null, false);
