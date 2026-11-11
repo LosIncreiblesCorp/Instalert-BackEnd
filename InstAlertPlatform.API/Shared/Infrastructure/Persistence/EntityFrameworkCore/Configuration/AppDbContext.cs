@@ -4,9 +4,9 @@ using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Contacts.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
-using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Mapping.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Dashboard.Domain.Model.Aggregates;
+using InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Mapping.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Notifications.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Shared.Domain.Model;
@@ -20,17 +20,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        builder.Entity<AlertRecord>().ToTable("alerts");
-        builder.Entity<AlertRecord>().Property(x => x.BusinessId).HasMaxLength(80);
-        builder.Entity<AlertRecord>().Property(x => x.EmployeeId).HasMaxLength(80);
-        builder.Entity<AlertRecord>().Property(x => x.Kind).HasMaxLength(30);
-        builder.Entity<AlertRecord>().Property(x => x.Status).HasMaxLength(30);
-        builder.Entity<AlertRecord>().Property(x => x.ReportStatus).HasMaxLength(20);
-        builder.Entity<AlertRecord>().Property(x => x.Category).HasMaxLength(80);
-        builder.Entity<AlertRecord>().Property(x => x.Description).HasMaxLength(2000);
-        builder.Entity<AlertRecord>().Property(x => x.Location).HasMaxLength(250);
-        builder.Entity<AlertRecord>().HasIndex(x => new { x.BusinessId, x.Status });
-        builder.Entity<AlertRecord>().HasIndex(x => x.EmployeeId);
+        builder.ApplyAlertConfiguration();
         builder.ApplyMappingConfiguration();
         builder.ApplyNotificationsConfiguration();
         builder.Entity<Report>().ToTable("dashboard_reports");
@@ -41,7 +31,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         builder.Entity<Report>().Property(x => x.GenerationSource).HasMaxLength(20).IsRequired();
         builder.Entity<Report>().Property(x => x.GeneratedByUserId).HasMaxLength(160);
         builder.Entity<Report>().HasIndex(x => new { x.BusinessId, x.GeneratedAt }).HasDatabaseName("i_x_dashboard_reports_business_id_generated_at");
-        builder.Entity<AlertPreferences>().ToTable("alert_preferences");
         builder.Entity<BusinessProfile>().ToTable("business_profiles");
         builder.Entity<BusinessProfile>().HasKey(x => x.Id);
         builder.Entity<BusinessProfile>().Property(x => x.Id).ValueGeneratedOnAdd();
