@@ -1,6 +1,6 @@
 # InstAlert Web Services
 
-ASP.NET Core REST API using C#, EF Core and MySQL. The backend follows the current CatchUp classroom structure: explicit command/query services, operation error enums, repositories, unit of work, REST resources and assemblers. Shared provides technical support. Business owns commerce profiles, employee memberships and invitations; personal data belongs to Profiles; subscriptions and billing records belong to Payments. This branch adds PayPal subscription checkout, server-side verification, plan changes, cancellation, billing history and webhook reconciliation.
+ASP.NET Core REST API using C#, EF Core and MySQL. The backend uses explicit command/query services, operation error enums, repositories, unit of work, REST resources and assemblers. Shared provides technical support. Business owns commerce profiles, employee memberships and invitations; personal data belongs to Profiles; subscriptions and billing records belong to Payments. This branch adds PayPal subscription checkout, server-side verification, plan changes, cancellation, billing history and webhook reconciliation.
 
 ## Run locally
 
@@ -12,9 +12,11 @@ dotnet ef database update --project InstAlertPlatform.API
 dotnet run --project InstAlertPlatform.API --launch-profile http
 ```
 
-The configuration files follow the classroom example: `appsettings.json` provides the base settings, `appsettings.Development.json` provides local development settings, and `appsettings.Production.json` uses `%DATABASE_URL%`, `%DATABASE_USER%`, `%DATABASE_PASSWORD%` and `%DATABASE_SCHEMA%` in its connection template. `Program.cs` expands these environment variables before configuring MySQL. `DATABASE_URL` is the MySQL server host. Development can apply migrations on startup when `Database:ApplyMigrationsOnStartup` is enabled and the connection is configured. Production never applies them automatically. Configure `Cors:AllowedOrigins` for browser access; the development configuration permits the local frontend on port 5193.
+Configuration uses the standard ASP.NET files: `appsettings.json`, `appsettings.Development.json` and `appsettings.Production.json`. Configure the local MySQL connection and provider values in the existing Development settings. Environment variables and command-line arguments can override them. Production uses the `%DATABASE_URL%`, `%DATABASE_USER%`, `%DATABASE_PASSWORD%` and `%DATABASE_SCHEMA%` connection template, or `ConnectionStrings__DefaultConnection`.
 
-OpenAPI: `http://localhost:5211/openapi/v1.json`. Scalar: `http://localhost:5211/scalar/v1`. English (`en-US`) is the default; `Accept-Language: es-419` selects Latin American Spanish for messages and operation documentation.
+The HTTP launch profile uses port 5221. Vite uses port 5173; Development CORS allows localhost and 127.0.0.1 on that port and the existing 5192/5193 ports. Set `Cors__AllowedOrigins__0` to the exact published frontend origin for a demonstration deployment. There is no default public deployment URL. Database migrations remain explicit outside Development; review `Database:ApplyMigrationsOnStartup`, workers and mail flags before running locally.
+
+OpenAPI: `http://localhost:5221/openapi/v1.json`. Scalar: `http://localhost:5221/scalar/v1`. English (`en-US`) is the default; `Accept-Language: es-419` selects Latin American Spanish for messages and operation documentation.
 
 ## Business profile API
 
@@ -25,11 +27,55 @@ OpenAPI: `http://localhost:5211/openapi/v1.json`. Scalar: `http://localhost:5211
 | GET | `/api/v1/businesses/{id}` | Read an owned business |
 | PUT | `/api/v1/businesses/{id}` | Update its name, address and coordinates |
 
-Registration requires an eleven-digit textual `taxId`, `name`, `address`, `latitude` and `longitude`. Name and address limits are 150 and 250 characters. Coordinates must be finite and within latitude/longitude bounds. The registered tax identifier is immutable. The database enforces its uniqueness. Public IDs are serialized as strings; audit dates are assigned by the server and stored in UTC. Registration returns 201 and a Location header; empty lists return 200. Invalid requests return localized ProblemDetails, with field errors for model validation.
+Registration requires an eleven-digit textual `taxId`, `name`, `address`, `latitude` and `longitude`. Name and address limits are 150 and 250 characters. Coordinates must be finite and within latitude/longitude bounds. The registered tax identifier is immutable. The database enforces its uniqueness. Business profile responses omit the internal concurrency stamp; EF Core retains it in persistence. Public IDs are serialized as strings; audit dates are assigned by the server and stored in UTC. Registration returns 201 and a Location header; empty lists return 200. Invalid requests return localized ProblemDetails, with field errors for model validation.
 
-For local development without IAM, the `User-Id` header accepts only configured synthetic identities when `DevelopmentActors:Enabled` is true. `synthetic-admin` is the configured development administrator; `synthetic-employee` has no administrator privileges. The header is rejected outside Development. This delivery does not implement sign-in, credentials or production authentication. Ownership checks remain server-side, and the frontend role selection does not grant permissions.
+This delivery uses two demonstration actors, `synthetic-admin` and `synthetic-employee`, selected through the `User-Id` header. In Development, `DevelopmentActors:Enabled=true` enables them. A published demonstration running in Production must explicitly set `Demo__Enabled=true`; with this flag disabled, Production rejects these headers. The selector is not authentication, and this delivery does not create IAM accounts or credentials. The actor lists and administrator role mapping are defined in the public base settings and continue to apply in either environment.
 
-In Development, `DevelopmentData:SeedOnStartup` creates an idempotent synthetic business owned by `synthetic-admin`, an active membership for `synthetic-employee`, and a 30-day simulated Essential subscription when those records do not already exist. Existing records are preserved. The business receives its database-generated ID on first startup; call `GET /api/v1/businesses` with `User-Id: synthetic-admin` or `User-Id: synthetic-employee` to retrieve it. No IAM accounts, credentials, or real payments are created.
+`DevelopmentData:SeedOnStartup` loads the two profiles, a single owned commerce, the employee membership and the existing simulated Essential entitlement. Alternatively, run `dotnet run --project InstAlertPlatform.API --no-launch-profile -- --environment Development --seed-development true` after applying migrations. Production seeding requires explicit demo mode; startup seeding also requires `DevelopmentData__SeedOnStartup=true`. The seed reuses the administrator's existing commerce, preserves an inactive membership and stops if the fixture employee is assigned elsewhere or fixture ownership is ambiguous. It does not move employees or remove existing data.
+
+Use `GET /api/v1/businesses` for each demo actor to obtain the database-generated commerce ID. `GET /api/v1/business-members/me` returns the employee's association and status. The frontend connection context uses these existing endpoints rather than a fixed commerce ID.
+
+For read-only connection checks, disable `Database__ApplyMigrationsOnStartup`, `DevelopmentData__SeedOnStartup`, `Workers__Enabled` and `Email__Enabled`.
+
+## Staff and personal profiles
+
+Business owns operational memberships and invitation history. An administrator owns one commerce; an employee remains associated with one commerce even while inactive. Registration checks ownership, acceptance checks all memberships, and unique database indexes enforce owner and employee assignment. A normalized pending invitation email can reserve only one commerce at a time; cancellation releases that reservation. Membership deactivation releases the operational seat without deleting the association.
+
+The `EnforceSingleCommerceAssignments` migration adds these unique indexes and a generated pending-email column. Existing duplicate owners, memberships or pending reservations must be reviewed before applying it. The migration does not delete or transfer records to resolve conflicts.
+
+| Method | Route | Operation |
+|---|---|---|
+| GET | `/api/v1/businesses/{id}/seats` | Read server-calculated capacity |
+| GET | `/api/v1/businesses/{id}/members` | Read staff |
+| GET/POST | `/api/v1/businesses/{id}/invitations` | Read or create invitations |
+| PUT | `/api/v1/business-members/{id}` | Edit employee name and email |
+| POST | `/api/v1/business-members/{id}/activation` | Activate with available capacity |
+| POST | `/api/v1/business-members/{id}/deactivation` | Deactivate while preserving the association |
+| PUT | `/api/v1/staff-invitations/{id}` | Edit a pending invitation |
+| POST | `/api/v1/staff-invitations/{id}/cancellation` | Cancel and release the reserved seat |
+| POST | `/api/v1/staff-invitations/{id}/resend` | Request delivery again |
+| GET/PUT | `/api/v1/profiles/{userId}` | Read or update the caller's personal data |
+| GET/PUT | `/api/v1/profiles/{userId}/preferences` | Read or update the caller's locale |
+
+The server checks commerce ownership, capacity, transitions and duplicate email reservations. Personal profiles preserve the textual eight-digit DNI; the optional phone is normalized to 7–15 digits with an optional leading `+`. This demonstration keeps two fixed actors. Invitations do not create credentials; employee account provisioning requires IAM in a later delivery.
+
+## Alert lifecycle
+
+| Method | Route | Operation |
+|---|---|---|
+| GET | `/api/v1/alerts?businessId={id}&page=1&pageSize=100` | Read authorized commerce history |
+| POST | `/api/v1/alerts/panic-preparations` | Issue a scoped preparation without creating an alert |
+| POST | `/api/v1/alerts/panic` | Confirm after the server-issued grace period |
+| PUT | `/api/v1/alerts/{id}/location` | Update the caller's active panic location |
+| POST | `/api/v1/alerts/{id}/resolution` | Resolve the caller's panic, leaving its report pending |
+| PUT | `/api/v1/alerts/{id}/report-draft` | Save details of the caller's pending report |
+| POST | `/api/v1/alerts/{id}/report-completion` | Complete the report while retaining resolved status |
+| POST | `/api/v1/alerts/reports` | Submit a past incident, suspicious activity or other situation |
+| GET/PUT | `/api/v1/alert-preferences/{userId}` | Read or save the caller's 1–60 second grace period |
+
+Cancelling the browser countdown discards its preparation and does not call confirmation. Preparations do not persist alerts, publish alert events or queue deliveries. Confirmation verifies the protected user/commerce scope and server time; retrying a previously confirmed token returns that record, including when its preparation period has expired. An unused expired token is rejected. Public alert responses omit event revisions; internal alert facts retain them for ordered Mapping and Notifications processing.
+
+Commerce members may read history; only an alert's creator can modify its location, resolve it or complete its report. Resolution is idempotent, completed reports cannot be edited, and occurrence dates must be within the MySQL UTC range and not in the future. Alert events are published only after persisted changes; external notification delivery is handled by Notifications.
 
 ## Payments API
 
@@ -61,7 +107,22 @@ The operational employee manages only their own emergency contacts. In Developme
 | PUT | `/api/v1/emergency-contacts/{id}` | Update an owned contact |
 | DELETE | `/api/v1/emergency-contacts/{id}` | Delete an owned contact |
 
-Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled in F09.
+Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The caller determines ownership; request bodies do not choose an employee or provide audit timestamps. Names and relationships are trimmed, phones are normalized to 7–15 digits with an optional leading `+`, empty email becomes `null`, and notes are limited to 140 characters. Inactive memberships receive 403 for reads and writes, while foreign or missing contact IDs return 404. Invalid updates preserve the saved record. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled in F09.
+
+## Notifications API
+
+The inbox is scoped to the caller and an accessible commerce. Both demonstration roles use the same contract; inactive memberships cannot read or update their former commerce's notifications or preferences.
+
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/v1/notifications?businessId={id}&page=1&pageSize=100` | Read the caller's paginated inbox |
+| POST | `/api/v1/notifications/{id}/reading` | Mark a received notification as read |
+| GET/PUT | `/api/v1/notification-preferences/{userId}?businessId={id}` | Read or save the caller's nearby-alert preferences |
+| GET | `/api/v1/notifications/deliveries` | Read the caller's external delivery states |
+
+Inbox pages use newest creation time first and ID as a stable tie-breaker, with page sizes from 1 to 100. Reading is idempotent: the server assigns the first read time and rejects another recipient's ID with 404. Preference changes contain only `nearbyAlertsEnabled` and `nearbyRadiusMeters`, accepting 100, 500 or 1000 meters. Invalid changes preserve the previous configuration.
+
+`Workers__Enabled=true` enables processing of committed alert events into in-app notifications. The backend determines recipients, active membership, preferences and distance from saved commerce coordinates; the browser does not create these records. Receipt is retained after a panic is resolved or preferences change. Email delivery additionally requires the separate Brevo and Email configuration; disabling Email does not disable the in-app inbox.
 
 ## Verification
 

@@ -20,7 +20,7 @@ public sealed class AlertQueryService(IAlertRecordRepository records, IOutboxMes
         var pageSize = query.PageSize;
         await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, false), cancellationToken);
         Guard.Require(page >= 1 && pageSize is >= 1 and <= 100, "validation", "pagination");
-        return (await records.FindByBusinessIdAsync(businessId, cancellationToken)).Where(a => status is null || a.Status == status).OrderByDescending(a => a.CreatedAt).Skip((int)Math.Min(int.MaxValue, ((long)page - 1) * pageSize)).Take(pageSize).Select(ToAlertFact).ToList();
+        return (await records.FindByBusinessIdAsync(businessId, cancellationToken)).Where(a => status is null || a.Status == status).OrderByDescending(a => a.CreatedAt).ThenByDescending(a => a.Id).Skip((int)Math.Min(int.MaxValue, ((long)page - 1) * pageSize)).Take(pageSize).Select(ToAlertFact).ToList();
     }
 
     public async Task<AlertFact> Handle(GetAlertByIdQuery query, CancellationToken cancellationToken = default)

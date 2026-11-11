@@ -223,16 +223,16 @@ namespace InstAlertPlatform.API.Migrations
                     b.HasKey("Id")
                         .HasName("p_k_business_members");
 
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_business_members_user_id");
+
                     b.HasIndex("BusinessId", "Email")
                         .IsUnique()
                         .HasDatabaseName("i_x_business_members_business_id_email");
 
                     b.HasIndex("BusinessId", "Status")
                         .HasDatabaseName("i_x_business_members_business_id_status");
-
-                    b.HasIndex("BusinessId", "UserId")
-                        .IsUnique()
-                        .HasDatabaseName("i_x_business_members_business_id_user_id");
 
                     b.HasIndex("UserId", "Status")
                         .HasDatabaseName("i_x_business_members_user_id_status");
@@ -304,6 +304,7 @@ namespace InstAlertPlatform.API.Migrations
                         .HasName("p_k_business_profiles");
 
                     b.HasIndex("OwnerUserId")
+                        .IsUnique()
                         .HasDatabaseName("i_x_business_profiles_owner_user_id");
 
                     b.HasIndex("TaxId")
@@ -348,6 +349,13 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("last_requested_at");
 
+                    b.Property<string>("PendingEmail")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)")
+                        .HasColumnName("pending_email")
+                        .HasComputedColumnSql("CASE WHEN `status` = 'pending' THEN `email` ELSE NULL END", true);
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -367,6 +375,10 @@ namespace InstAlertPlatform.API.Migrations
 
                     b.HasKey("Id")
                         .HasName("p_k_staff_invitations");
+
+                    b.HasIndex("PendingEmail")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_staff_invitations_pending_email");
 
                     b.HasIndex("BusinessId", "Status")
                         .HasDatabaseName("i_x_staff_invitations_business_id_status");

@@ -11,7 +11,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Business.Application.Internal.CommandServices;
-public sealed class BusinessMemberCommandService(IBusinessMemberRepository members, IBusinessProfileQueryService access, IPlanQueryService limits, ICurrentActor actor, IUnitOfWork work, IBusinessRevisionCommandService revisions) : IBusinessMemberCommandService
+public sealed class BusinessMemberCommandService(IBusinessMemberRepository members, IStaffInvitationRepository invitations, IBusinessProfileQueryService access, IPlanQueryService limits, ICurrentActor actor, IUnitOfWork work, IBusinessRevisionCommandService revisions) : IBusinessMemberCommandService
 {
     public async Task<Result<MemberSnapshot, EChangeBusinessMemberStatusError>> Handle(ChangeBusinessMemberStatusCommand command, CancellationToken cancellationToken = default)
     {
@@ -69,8 +69,9 @@ public sealed class BusinessMemberCommandService(IBusinessMemberRepository membe
             var member = await members.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
             await access.Handle(new RequireBusinessAccessQuery(member.BusinessId.ToString(), actor.UserId, true), cancellationToken);
             var email = Guard.Email(details.Email);
-            var existing = await members.FindByBusinessIdAndEmailAsync(member.BusinessId.ToString(), email, cancellationToken);
+            var existing = await members.FindByEmailAsync(email, cancellationToken);
             Guard.Require(existing.All(candidate => candidate.Id == member.Id), "conflict", "email");
+            Guard.Require((await invitations.FindPendingByEmailAsync(email, cancellationToken)).Count == 0, "conflict", "email");
             member.Update(details.DisplayName, email);
             await work.CompleteAsync(cancellationToken);
             return new Result<MemberSnapshot, EUpdateBusinessMemberError>.Success(ToMemberSnapshot(member));

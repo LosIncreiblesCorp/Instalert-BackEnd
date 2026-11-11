@@ -63,11 +63,11 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
             var p = proofs.Unprotect(preparationToken);
             Guard.Require(p.UserId == actor.UserId, "forbidden");
             var now = clock.GetUtcNow();
-            Guard.Require(now >= p.NotBefore && now < p.ExpiresAt, "transition");
             await business.Handle(new RequireBusinessAccessQuery(p.BusinessId, actor.UserId, false), cancellationToken);
             var existing = await records.FindByIdAsync(p.Id, cancellationToken);
             if (existing is not null)
                 return new Result<AlertFact, EConfirmPanicError>.Success(ToAlertFact(existing));
+            Guard.Require(now >= p.NotBefore && now < p.ExpiresAt, "transition");
             Guard.Require((await records.FindByEmployeeIdAndKindAndStatusAsync(actor.UserId, "panic", "active", cancellationToken)).Count == 0, "conflict");
             Guard.Coordinates(latitude, longitude);
             Guard.Require((location?.Length ?? 0) <= 250, "validation", "location");
