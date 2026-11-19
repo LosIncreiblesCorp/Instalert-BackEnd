@@ -473,7 +473,7 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("cutoff_at");
 
-                    b.Property<DateOnly>("EndDate")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("date")
                         .HasColumnName("end_date");
 
@@ -496,7 +496,7 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("int")
                         .HasColumnName("schema_version");
 
-                    b.Property<DateOnly>("StartDate")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("date")
                         .HasColumnName("start_date");
 
@@ -523,6 +523,70 @@ namespace InstAlertPlatform.API.Migrations
                         .HasDatabaseName("i_x_dashboard_reports_business_id_generated_at");
 
                     b.ToTable("dashboard_reports", (string)null);
+                });
+
+            modelBuilder.Entity("InstAlertPlatform.API.Iam.Domain.Model.Aggregates.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("must_change_password");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("role");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasColumnName("security_stamp");
+
+                    b.Property<DateTime?>("TemporaryPasswordExpiresAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("temporary_password_expires_at");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_users");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_users_email");
+
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("InstAlertPlatform.API.Mapping.Domain.Model.Aggregates.IncidentProjection", b =>

@@ -1,4 +1,5 @@
 using InstAlertPlatform.API.Mapping.Domain.Model.Aggregates;
+using InstAlertPlatform.API.Iam.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Dashboard.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Alert.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
 using InstAlertPlatform.API.Business.Infrastructure.Persistence.EntityFrameworkCore.Configuration.Extensions;
@@ -18,6 +19,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.ApplyIamConfiguration();
         builder.ApplyAlertConfiguration();
         builder.ApplyMappingConfiguration();
         builder.ApplyNotificationsConfiguration();
