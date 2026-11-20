@@ -16,10 +16,14 @@ public sealed partial class DeliveryRequest : AuditedEntity
         UserId = userId;
     }
 
-    public static DeliveryRequest Invitation(string id, string invitationId, string email, string ownerUserId) => new(id, "", "email", email, ownerUserId)
+    public static DeliveryRequest Invitation(string id, string invitationId, string email, string ownerUserId, int sequence = 0, string? credential = null) => new(id, "", "email", email, ownerUserId)
     {
-        SourceInvitationId = invitationId
+        SourceInvitationId = invitationId,
+        InvitationSequence = sequence,
+        InvitationCredential = credential
     };
+    public int InvitationSequence { get; private set; }
+    public string? InvitationCredential { get; private set; }
     public string? SourceInvitationId { get; private set; }
     public string SourceAlertId { get; private set; } = "";
     public string Channel { get; private set; } = "";
@@ -40,6 +44,7 @@ public sealed partial class DeliveryRequest : AuditedEntity
     public void Sent(DateTimeOffset now)
     {
         Status = "sent";
+        InvitationCredential = null;
         SentAt = now;
         LeaseUntil = null;
     }
@@ -47,6 +52,7 @@ public sealed partial class DeliveryRequest : AuditedEntity
     public void Cancel()
     {
         Status = "cancelled";
+        InvitationCredential = null;
         LeaseUntil = null;
     }
 
