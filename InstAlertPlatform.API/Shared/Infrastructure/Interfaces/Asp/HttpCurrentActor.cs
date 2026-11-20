@@ -15,7 +15,7 @@ public sealed class HttpCurrentActor(IHttpContextAccessor accessor, IWebHostEnvi
             var userId = UserId;
             var principal = accessor.HttpContext?.User;
             if (principal?.Identity?.IsAuthenticated == true)
-                return principal.IsInRole("Administrator");
+                return principal.IsInRole("Administrator") || principal.IsInRole("administrator");
             return DemoActorsEnabled &&
                 (configuration.GetSection("DevelopmentActors:AdministratorUserIds").Get<string[]>() ?? []).Contains(userId, StringComparer.Ordinal);
         }

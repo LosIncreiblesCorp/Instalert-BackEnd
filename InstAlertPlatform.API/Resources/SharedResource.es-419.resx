@@ -582,4 +582,32 @@
   <data name="Field_startDate" xml:space="preserve"><value>Fecha inicial inclusiva en America/Lima (YYYY-MM-DD).</value></data>
   <data name="Field_endDate" xml:space="preserve"><value>Fecha final inclusiva en America/Lima; no puede ser futura.</value></data>
   <data name="Field_cutoffAt" xml:space="preserve"><value>Instante de corte UTC autoritativo de la instantánea, excluyendo ese instante.</value></data>
+<data name="IdentityEmailInvalid" xml:space="preserve"><value>Ingresa un correo electrónico válido.</value></data>
+
+<data name="IdentityPasswordInvalid" xml:space="preserve"><value>Ingresa una contraseña de 10 a 72 caracteres.</value></data>
+
+<data name="Identity_Register_Summary" xml:space="preserve"><value>Registrar un administrador</value></data>
+
+<data name="Identity_Register_Description" xml:space="preserve"><value>Crea una cuenta de administrador y una sesión autenticada. Las cuentas de empleados se originan en invitaciones.</value></data>
+
+<data name="Identity_ChangePassword_Summary" xml:space="preserve"><value>Cambiar la contraseña</value></data>
+
+<data name="Identity_ChangePassword_Description" xml:space="preserve"><value>Verifica la contraseña actual, actualiza su hash e invalida los tokens anteriores.</value></data>
+
+<data name="Identity_SignIn_Summary" xml:space="preserve"><value>Iniciar sesión</value></data>
+
+<data name="Identity_SignIn_Description" xml:space="preserve"><value>Valida las credenciales y emite un token de acceso firmado.</value></data>
+
+<data name="Identity_SignOut_Summary" xml:space="preserve"><value>Revocar las sesiones de la cuenta</value></data>
+
+<data name="Identity_SignOut_Description" xml:space="preserve"><value>Invalida los tokens emitidos antes de esta solicitud.</value></data>
+
+<data name="Identity_Current_Summary" xml:space="preserve"><value>Consultar la sesión actual</value></data>
+
+<data name="Identity_Current_Description" xml:space="preserve"><value>Devuelve la identidad autenticada y el requisito de cambio de contraseña.</value></data>
+
+<data name="Response429" xml:space="preserve"><value>Demasiados intentos</value></data>
+
+<data name="ErrorDetail429" xml:space="preserve"><value>Espera un minuto antes de intentarlo nuevamente.</value></data>
+
 </root>
