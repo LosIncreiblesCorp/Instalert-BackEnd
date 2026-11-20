@@ -8,6 +8,7 @@ public static class ProblemDetailsAssembler
     public static int StatusCode(string code) => code switch
     {
         "unauthenticated" => 401,
+        "rate_limited" => 429,
         "forbidden" => 403,
         "not_found" => 404,
         "conflict" or "concurrency" or "capacity" or "transition" or "already_completed" => 409,

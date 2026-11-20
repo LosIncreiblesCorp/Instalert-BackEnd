@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+using InstAlertPlatform.API.Iam.Infrastructure.Pipeline.Middleware.Extensions;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
 using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp;
@@ -55,7 +57,11 @@ builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.W
     Converters = { new UtcIsoTimestampJsonConverter() }
 });
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddDataProtection();
+builder.Services.AddIdentityAuthentication();
+var dataProtection = builder.Services.AddDataProtection();
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
 builder.Services.AddScoped<ICurrentActor, HttpCurrentActor>();
 builder.Services.AddSingleton<AuditableEntityInterceptor>();
 builder.Services.AddDbContext<AppDbContext>((provider, options) =>
@@ -174,8 +180,14 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddSchemaTransformer(OpenApiLocalizationAssembler.TransformSchemaAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Iam.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddDocumentTransformer<InstAlertPlatform.API.Iam.Infrastructure.Tokens.Jwt.Configuration.BearerDocumentTransformer>();
+    options.AddOperationTransformer<InstAlertPlatform.API.Iam.Infrastructure.Tokens.Jwt.Configuration.BearerOperationTransformer>();
     options.AddOperationTransformer((operation, context, token) =>
     {
+        if (context.Description.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor action
+            && action.ControllerTypeInfo.Namespace?.Contains(".Iam.", StringComparison.Ordinal) == true)
+            return Task.CompletedTask;
         if (builder.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Demo:Enabled"))
         {
             operation.Parameters ??= [];
@@ -222,6 +234,9 @@ localization.ApplyCurrentCultureToResponseHeaders = true;
 app.UseRequestLocalization(localization);
 app.UseExceptionHandler();
 app.UseCors();
+app.UseAuthentication();
+app.UseRateLimiter();
+app.UseAuthorization();
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Documentation:Enabled"))
