@@ -58,6 +58,8 @@ builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.W
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddIdentityAuthentication();
+builder.Services.AddAuthorization(options => options.AddPolicy("PersonalProfile", policy =>
+    policy.RequireAuthenticatedUser().RequireClaim("password_change_required", "false")));
 var dataProtection = builder.Services.AddDataProtection();
 var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
 if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
