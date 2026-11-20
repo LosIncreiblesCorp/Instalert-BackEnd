@@ -1,16 +1,16 @@
+using InstAlertPlatform.API.Alert.Application.QueryServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Contacts.Application.QueryServices;
+using InstAlertPlatform.API.Notifications.Application.CommandServices;
 using InstAlertPlatform.API.Contacts.Domain.Model.Queries;
-using InstAlertPlatform.API.Contacts.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Repositories;
 using System.Text.Json;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
-using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Application.Errors;
 using InstAlertPlatform.API.Notifications.Domain.Model.Commands;
 

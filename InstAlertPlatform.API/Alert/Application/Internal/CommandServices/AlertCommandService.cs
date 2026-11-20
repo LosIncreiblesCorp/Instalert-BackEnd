@@ -1,9 +1,13 @@
+using InstAlertPlatform.API.Alert.Application.CommandServices;
+using InstAlertPlatform.API.Alert.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
+using InstAlertPlatform.API.Alert.Domain.Model.Events;
+using InstAlertPlatform.API.Business.Application.CommandServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Alert.Application.Errors;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Alert.Domain.Model.Commands;
@@ -275,7 +279,7 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
         }
     }
 
-    private async Task Publish(AlertRecord a, CancellationToken cancellationToken) => await outbox.AddAsync(new OutboxMessage("alert.changed.v1", ToAlertFact(a)), cancellationToken);
+    private async Task Publish(AlertRecord a, CancellationToken cancellationToken) => await outbox.AddAsync(new OutboxMessage("alert.changed.v1", ToAlertChangedEvent(a)), cancellationToken);
     private async Task<AlertRecord> Own(string id, CancellationToken cancellationToken)
     {
         var a = await records.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
@@ -285,4 +289,5 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
     }
 
     private static AlertFact ToAlertFact(AlertRecord a) => new(a.Id, a.BusinessId, a.EmployeeId, a.Kind, a.Status, a.ReportStatus, a.Category, a.Description, a.Location, a.Latitude, a.Longitude, a.Moment, a.CreatedAt ?? DateTimeOffset.MinValue, a.ActivatedAt, a.ResolvedAt, a.CompletedAt, a.Revision);
+    private static AlertChangedEvent ToAlertChangedEvent(AlertRecord a) => new(a.Id, a.BusinessId, a.EmployeeId, a.Kind, a.Status, a.ReportStatus, a.Category, a.Description, a.Location, a.Latitude, a.Longitude, a.Moment, a.CreatedAt ?? DateTimeOffset.MinValue, a.ActivatedAt, a.ResolvedAt, a.CompletedAt, a.Revision);
 }

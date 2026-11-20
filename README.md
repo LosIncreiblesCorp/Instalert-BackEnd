@@ -176,3 +176,11 @@ The administrator can deactivate or reactivate a membership, but cannot edit an 
 Apply `ProtectInvitationDelivery` before running this version. Invitations carry a protected temporary credential through the outbox and email queue. Notifications checks the invitation email, pending state, delivery sequence, credential expiry and IAM security stamp immediately before sending. Cancelled or superseded deliveries are skipped. Credentials are cleared from completed delivery records. Personal passwords are never sent.
 
 Configure `Application__PublicUrl` with the frontend's public URL, `Workers__Enabled=true`, `Email__Enabled=true`, `Brevo__ApiKey` and `Email__FromAddress` outside source control. `Email__FromName` is optional. Retain a persistent writable `DataProtection__KeysPath` across restarts so queued credentials can be opened by the delivery worker. Temporary passwords expire 24 hours after issuance; the invitation and reserved seat remain pending until accepted or cancelled. Resending rotates a provisional credential and does not reserve another seat.
+
+## Project layout
+
+Each bounded context keeps command and query service contracts in `Application/CommandServices` and `Application/QueryServices`, and implementations in `Application/Internal`. Read models are grouped under `Application/Services/Snapshots`; provider contracts and their message types are under `Application/Internal/OutboundServices`.
+
+Published event contracts belong to the producing context's `Domain/Model/Events`. Consumers handle them under `Application/Internal/EventHandlers`. Integration messages retain the `alert.changed.v1` and `business.invitation.requested.v1` identifiers and their existing JSON fields. The shared outbox persists and dispatches these messages from `Shared/Infrastructure/Persistence/EntityFrameworkCore/Outbox`.
+
+ACL interfaces live under `Interfaces/Acl`, with their implementations under `Application/Acl`. Provider adapters remain in Infrastructure: PayPal and Brevo services have dedicated directories, and hosted workers are grouped under `Infrastructure/BackgroundServices`. The shared `AppDbContext` continues to compose each context's ORM configuration.

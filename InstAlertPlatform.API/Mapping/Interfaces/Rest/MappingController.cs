@@ -1,4 +1,4 @@
-using InstAlertPlatform.API.Mapping.Application.Services;
+using InstAlertPlatform.API.Mapping.Application.QueryServices;
 using InstAlertPlatform.API.Mapping.Domain.Model.Queries;
 using InstAlertPlatform.API.Mapping.Interfaces.Rest.Resources;
 using InstAlertPlatform.API.Mapping.Interfaces.Rest.Transform;

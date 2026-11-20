@@ -1,11 +1,14 @@
-using InstAlertPlatform.API.Profiles.Application.Services;
+using InstAlertPlatform.API.Business.Application.CommandServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Payments.Application.CommandServices;
+using InstAlertPlatform.API.Payments.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Payments.Application.Services.Snapshots;
+using InstAlertPlatform.API.Profiles.Application.QueryServices;
 using InstAlertPlatform.API.Profiles.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Payments.Application.Errors;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Payments.Domain.Model.Commands;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;

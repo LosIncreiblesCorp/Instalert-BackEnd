@@ -1,7 +1,8 @@
+using InstAlertPlatform.API.Profiles.Application.CommandServices;
+using InstAlertPlatform.API.Profiles.Application.QueryServices;
 using Microsoft.AspNetCore.Authorization;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Profiles.Application.Services;
 using InstAlertPlatform.API.Profiles.Domain.Model.Commands;
 using InstAlertPlatform.API.Profiles.Domain.Model.Queries;
 using InstAlertPlatform.API.Profiles.Interfaces.Rest.Resources;

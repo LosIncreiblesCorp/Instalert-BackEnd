@@ -1,4 +1,4 @@
-using InstAlertPlatform.API.Alert.Application.Services;
+using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
 using InstAlertPlatform.API.Alert.Interfaces.Rest.Resources;
 
 namespace InstAlertPlatform.API.Alert.Interfaces.Rest.Transform;

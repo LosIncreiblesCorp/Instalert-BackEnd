@@ -1,8 +1,9 @@
+using InstAlertPlatform.API.Payments.Application.CommandServices;
+using InstAlertPlatform.API.Payments.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Payments.Interfaces.Rest.Resources;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
 using InstAlertPlatform.API.Payments.Interfaces.Rest.Transform;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Commands;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using System.Text.Json;

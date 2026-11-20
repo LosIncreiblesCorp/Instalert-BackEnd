@@ -1,6 +1,7 @@
+using InstAlertPlatform.API.Contacts.Application.CommandServices;
+using InstAlertPlatform.API.Contacts.Application.QueryServices;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Contacts.Application.Services;
 using InstAlertPlatform.API.Contacts.Domain.Model.Commands;
 using InstAlertPlatform.API.Contacts.Domain.Model.Queries;
 using InstAlertPlatform.API.Contacts.Interfaces.Rest.Resources;
