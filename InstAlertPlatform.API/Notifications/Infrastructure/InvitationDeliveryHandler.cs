@@ -14,7 +14,9 @@ public sealed class InvitationDeliveryHandler(IInvitationDeliveryCommandService 
     public async Task Handle(string payload, CancellationToken token)
     {
         var fact = JsonSerializer.Deserialize<InvitationDeliveryFact>(payload) ?? throw new InvalidOperationException("Invalid integration fact.");
-        var invitationQueueResult = (await commands.Handle(new QueueInvitationDeliveryCommand(fact.InvitationId, fact.OwnerUserId, fact.Email, fact.Sequence), token));
+        using var document = JsonDocument.Parse(payload);
+        var credential = document.RootElement.TryGetProperty("Credential", out var protectedValue) ? protectedValue.GetString() : null;
+        var invitationQueueResult = (await commands.Handle(new QueueInvitationDeliveryCommand(fact.InvitationId, fact.OwnerUserId, fact.Email, fact.Sequence, credential), token));
         if (invitationQueueResult is Result<bool, EQueueInvitationDeliveryError>.Failure invitationQueueFailure)
             throw new DomainException(invitationQueueFailure.Error switch
             {

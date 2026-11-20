@@ -158,3 +158,9 @@ This feature introduces IAM without changing the existing demonstration flows in
 ```powershell
 dotnet build instalert-platform.sln
 ```
+
+## Invitation credential delivery
+
+Apply `ProtectInvitationDelivery` before running this version. Invitations carry a protected temporary credential through the outbox and email queue. Notifications checks the invitation email, pending state, delivery sequence, credential expiry and IAM security stamp immediately before sending. Cancelled or superseded deliveries are skipped. Credentials are cleared from completed delivery records. Personal passwords are never sent.
+
+Configure `Application__PublicUrl` with the frontend's public URL, `Workers__Enabled=true`, `Email__Enabled=true`, `Brevo__ApiKey` and `Email__FromAddress` outside source control. `Email__FromName` is optional. Retain a persistent writable `DataProtection__KeysPath` across restarts so queued credentials can be opened by the delivery worker. Temporary passwords expire 24 hours after issuance; the invitation and reserved seat remain pending until accepted or cancelled. Resending rotates a provisional credential and does not reserve another seat.
