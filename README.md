@@ -170,3 +170,9 @@ Invitation and membership operations use bearer sessions. The administrator invi
 Employees change their temporary password, complete their personal profile, then accept an invitation addressed to their verified account email. `GET /api/v1/staff-invitations/me` lists only those pending invitations and includes the commerce name. Acceptance checks identity, profile, subscription and capacity again.
 
 The administrator can deactivate or reactivate a membership, but cannot edit an incorporated employee's name, email or password. Correct a pending invitation's email by cancelling it and creating another invitation. Deactivation releases a seat without moving or deleting the employee's account; reactivation requires a valid subscription and capacity.
+
+## Invitation credential delivery
+
+Apply `ProtectInvitationDelivery` before running this version. Invitations carry a protected temporary credential through the outbox and email queue. Notifications checks the invitation email, pending state, delivery sequence, credential expiry and IAM security stamp immediately before sending. Cancelled or superseded deliveries are skipped. Credentials are cleared from completed delivery records. Personal passwords are never sent.
+
+Configure `Application__PublicUrl` with the frontend's public URL, `Workers__Enabled=true`, `Email__Enabled=true`, `Brevo__ApiKey` and `Email__FromAddress` outside source control. `Email__FromName` is optional. Retain a persistent writable `DataProtection__KeysPath` across restarts so queued credentials can be opened by the delivery worker. Temporary passwords expire 24 hours after issuance; the invitation and reserved seat remain pending until accepted or cancelled. Resending rotates a provisional credential and does not reserve another seat.

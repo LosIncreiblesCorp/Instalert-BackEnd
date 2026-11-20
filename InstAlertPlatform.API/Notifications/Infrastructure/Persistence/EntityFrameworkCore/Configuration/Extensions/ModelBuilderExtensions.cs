@@ -26,6 +26,7 @@ public static class ModelBuilderExtensions
         builder.Entity<NotificationPreferences>().HasIndex(x => new { x.UserId, x.BusinessId }).IsUnique();
 
         builder.Entity<DeliveryRequest>().ToTable("delivery_requests");
+        builder.Entity<DeliveryRequest>().Property(x => x.InvitationCredential).HasColumnType("longtext");
         builder.Entity<DeliveryRequest>().Property(x => x.SourceInvitationId).HasMaxLength(80);
         builder.Entity<DeliveryRequest>().Property(x => x.SourceAlertId).HasMaxLength(80).IsRequired();
         builder.Entity<DeliveryRequest>().Property(x => x.Channel).HasMaxLength(20).IsRequired();

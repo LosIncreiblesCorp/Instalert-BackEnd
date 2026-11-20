@@ -703,6 +703,14 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("varchar(254)")
                         .HasColumnName("destination");
 
+                    b.Property<string>("InvitationCredential")
+                        .HasColumnType("longtext")
+                        .HasColumnName("invitation_credential");
+
+                    b.Property<int>("InvitationSequence")
+                        .HasColumnType("int")
+                        .HasColumnName("invitation_sequence");
+
                     b.Property<DateTime?>("LeaseUntil")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("lease_until");

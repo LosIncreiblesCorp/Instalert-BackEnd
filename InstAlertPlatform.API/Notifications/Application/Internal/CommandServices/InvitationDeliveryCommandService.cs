@@ -23,7 +23,7 @@ public sealed class InvitationDeliveryCommandService(IDeliveryRequestRepository 
                 return new Result<bool, EQueueInvitationDeliveryError>.Success(true);
             var id = "invitation:" + fact.InvitationId + ":" + fact.Sequence;
             if (await deliveries.FindByIdAsync(id, token)is null)
-                await deliveries.AddAsync(DeliveryRequest.Invitation(id, fact.InvitationId, fact.Email, fact.OwnerUserId), token);
+                await deliveries.AddAsync(DeliveryRequest.Invitation(id, fact.InvitationId, fact.Email, fact.OwnerUserId, fact.Sequence, fact.Credential), token);
             return new Result<bool, EQueueInvitationDeliveryError>.Success(true);
         }
         catch (DomainException error)
