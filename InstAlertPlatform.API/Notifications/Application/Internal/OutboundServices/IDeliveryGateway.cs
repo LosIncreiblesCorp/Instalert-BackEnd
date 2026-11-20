@@ -1,4 +1,4 @@
-namespace InstAlertPlatform.API.Notifications.Application.Services;
+namespace InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices;
 public interface IDeliveryGateway
 {
     bool Configured(string channel);

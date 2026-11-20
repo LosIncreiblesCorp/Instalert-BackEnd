@@ -1,6 +1,5 @@
 using InstAlertPlatform.API.Notifications.Application.Services.Snapshots;
 using InstAlertPlatform.API.Notifications.Application.Errors;
-using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Model.Commands;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 

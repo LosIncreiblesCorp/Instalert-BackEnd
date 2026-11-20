@@ -1,6 +1,5 @@
 using InstAlertPlatform.API.Payments.Application.Services.Snapshots;
 using InstAlertPlatform.API.Payments.Application.Errors;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Resources;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration.Extensions;

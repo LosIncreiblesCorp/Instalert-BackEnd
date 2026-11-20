@@ -1,5 +1,4 @@
 using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
 
 namespace InstAlertPlatform.API.Alert.Application.QueryServices;

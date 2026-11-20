@@ -1,5 +1,4 @@
 using InstAlertPlatform.API.Payments.Application.QueryServices;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Commands;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
 using InstAlertPlatform.API.Payments.Interfaces.Rest.Resources;

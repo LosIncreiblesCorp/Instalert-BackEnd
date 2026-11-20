@@ -1,6 +1,6 @@
 using InstAlertPlatform.API.Payments.Application.CommandServices;
+using InstAlertPlatform.API.Payments.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Payments.Application.Errors;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Payments.Domain.Model.Commands;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;

@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Notifications.Infrastructure.Delivery;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;

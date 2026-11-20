@@ -1,12 +1,12 @@
 using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Iam.Interfaces.Acl;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace InstAlertPlatform.API.Notifications.Infrastructure;
+namespace InstAlertPlatform.API.Notifications.Infrastructure.Delivery;
 public sealed class DeliveryProcessor(AppDbContext db, IDeliveryGateway gateway, IBusinessProfileQueryService business, TimeProvider clock, ILogger<DeliveryProcessor> logger, IIamContextFacade identity, IConfiguration configuration)
 {
     public async Task Process(CancellationToken token)

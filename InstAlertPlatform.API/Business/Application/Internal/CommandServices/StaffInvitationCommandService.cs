@@ -5,7 +5,6 @@ using InstAlertPlatform.API.Business.Domain.Model.Events;
 using InstAlertPlatform.API.Payments.Application.QueryServices;
 using InstAlertPlatform.API.Iam.Interfaces.Acl;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;

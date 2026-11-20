@@ -1,9 +1,9 @@
-using InstAlertPlatform.API.Notifications.Application.Services;
+using InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices;
 using System.Net;
 using System.Net.Http.Json;
 using InstAlertPlatform.API.Shared.Domain.Model;
 
-namespace InstAlertPlatform.API.Notifications.Infrastructure;
+namespace InstAlertPlatform.API.Notifications.Infrastructure.Brevo.Services;
 public sealed class DeliveryGateway(IConfiguration configuration, IHttpClientFactory httpClients) : IDeliveryGateway
 {
     public bool Configured(string channel) => channel switch

@@ -7,7 +7,6 @@ using System.Text.Json;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
-using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Application.Errors;
 using InstAlertPlatform.API.Notifications.Domain.Model.Commands;
 

@@ -2,7 +2,6 @@ using InstAlertPlatform.API.Alert.Application.CommandServices;
 using InstAlertPlatform.API.Alert.Application.QueryServices;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.Commands;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
 using InstAlertPlatform.API.Alert.Interfaces.Rest.Resources;

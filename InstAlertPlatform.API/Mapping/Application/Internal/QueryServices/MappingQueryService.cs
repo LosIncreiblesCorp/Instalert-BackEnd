@@ -3,7 +3,6 @@ using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Mapping.Application.QueryServices;
 using InstAlertPlatform.API.Mapping.Application.Services.Snapshots;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Mapping.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Mapping.Domain.Model.Queries;

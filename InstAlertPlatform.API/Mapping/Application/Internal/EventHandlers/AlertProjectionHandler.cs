@@ -4,7 +4,6 @@ using InstAlertPlatform.API.Shared.Application.Internal.EventHandlers;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Mapping.Application.Errors;
 using System.Text.Json;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Mapping.Domain.Model.Commands;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 

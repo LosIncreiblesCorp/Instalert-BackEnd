@@ -1,4 +1,5 @@
 using InstAlertPlatform.API.Alert.Application.CommandServices;
+using InstAlertPlatform.API.Alert.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
 using InstAlertPlatform.API.Alert.Domain.Model.Events;
 using InstAlertPlatform.API.Business.Application.CommandServices;
@@ -7,7 +8,6 @@ using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
 using InstAlertPlatform.API.Alert.Application.Errors;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Alert.Domain.Model.Commands;

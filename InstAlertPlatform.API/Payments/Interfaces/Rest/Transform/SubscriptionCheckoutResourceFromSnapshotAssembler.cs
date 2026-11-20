@@ -1,5 +1,4 @@
 using InstAlertPlatform.API.Payments.Application.Services.Snapshots;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Interfaces.Rest.Resources;
 
 namespace InstAlertPlatform.API.Payments.Interfaces.Rest.Transform;

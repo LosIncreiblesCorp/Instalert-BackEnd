@@ -1,11 +1,11 @@
-using InstAlertPlatform.API.Payments.Application.Services;
+using InstAlertPlatform.API.Payments.Application.Internal.OutboundServices;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using InstAlertPlatform.API.Shared.Domain.Model;
 
-namespace InstAlertPlatform.API.Payments.Infrastructure;
+namespace InstAlertPlatform.API.Payments.Infrastructure.PayPal.Services;
 public sealed class PayPalSubscriptions(HttpClient client, IConfiguration configuration) : IPayPalSubscriptions, IPayPalWebhookVerifier
 {
     private async Task Authorize(CancellationToken token)

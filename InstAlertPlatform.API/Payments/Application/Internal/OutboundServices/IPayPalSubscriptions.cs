@@ -1,4 +1,4 @@
-namespace InstAlertPlatform.API.Payments.Application.Services;
+namespace InstAlertPlatform.API.Payments.Application.Internal.OutboundServices;
 public interface IPayPalSubscriptions
 {
     Task<ProviderSubscription> Get(string id, CancellationToken token);
