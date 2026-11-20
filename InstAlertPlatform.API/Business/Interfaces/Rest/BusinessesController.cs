@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
 using InstAlertPlatform.API.Business.Application.Services;
@@ -9,6 +10,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InstAlertPlatform.API.Business.Interfaces.Rest;
+[Authorize]
 [ApiController, Route("api/v1/[controller]"), Tags("Business")]
 [ProducesResponseType(typeof(ProblemDetails), 400), ProducesResponseType(typeof(ProblemDetails), 401), ProducesResponseType(typeof(ProblemDetails), 403), ProducesResponseType(typeof(ProblemDetails), 404), ProducesResponseType(typeof(ProblemDetails), 409), ProducesResponseType(typeof(ProblemDetails), 503)]
 [ProducesResponseType(typeof(ProblemDetails), 500)]
