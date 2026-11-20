@@ -201,43 +201,6 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
         }
     }
 
-    public async Task<Result<InvitationSnapshot, EUpdateStaffInvitationError>> Handle(UpdateStaffInvitationCommand command, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var id = command.Id;
-            var invitation = await invitations.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
-            await access.Handle(new RequireBusinessAccessQuery(invitation.BusinessId.ToString(), actor.UserId, true), cancellationToken);
-            var email = Guard.Email(command.Email);
-            Guard.Require((await invitations.FindPendingByEmailAsync(email, cancellationToken)).All(candidate => candidate.Id == invitation.Id), "conflict", "email");
-            Guard.Require((await members.FindByEmailAsync(email, cancellationToken)).Count == 0, "conflict", "email");
-            invitation.Update(command.DisplayName, email);
-            await work.CompleteAsync(cancellationToken);
-            return new Result<InvitationSnapshot, EUpdateStaffInvitationError>.Success(ToInvitationSnapshot(invitation));
-        }
-        catch (DomainException error)
-        {
-            return new Result<InvitationSnapshot, EUpdateStaffInvitationError>.Failure(error.Code switch
-            {
-                "validation" => EUpdateStaffInvitationError.InvalidInput,
-                "unauthenticated" => EUpdateStaffInvitationError.Unauthenticated,
-                "forbidden" => EUpdateStaffInvitationError.Forbidden,
-                "not_found" => EUpdateStaffInvitationError.NotFound,
-                "conflict" => EUpdateStaffInvitationError.Conflict,
-                "concurrency" => EUpdateStaffInvitationError.ConcurrencyConflict,
-                "capacity" => EUpdateStaffInvitationError.CapacityExceeded,
-                "transition" => EUpdateStaffInvitationError.InvalidTransition,
-                "provider_unavailable" => EUpdateStaffInvitationError.ProviderUnavailable,
-                "identity_unavailable" => EUpdateStaffInvitationError.IdentityUnavailable,
-                "unexpected" => EUpdateStaffInvitationError.UnexpectedError,
-                _ => EUpdateStaffInvitationError.UnexpectedError
-            })
-            {
-                Field = error.Field
-            };
-        }
-    }
-
     private async Task RequireSeat(string businessId, CancellationToken cancellationToken)
     {
         var plan = await limits.Handle(new GetPlanLimitsQuery(businessId), cancellationToken);

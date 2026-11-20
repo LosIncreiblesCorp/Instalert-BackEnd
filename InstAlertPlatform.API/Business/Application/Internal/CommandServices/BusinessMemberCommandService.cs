@@ -11,7 +11,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Business.Application.Internal.CommandServices;
-public sealed class BusinessMemberCommandService(IBusinessMemberRepository members, IStaffInvitationRepository invitations, IBusinessProfileQueryService access, IPlanQueryService limits, ICurrentActor actor, IUnitOfWork work, IBusinessRevisionCommandService revisions) : IBusinessMemberCommandService
+public sealed class BusinessMemberCommandService(IBusinessMemberRepository members, IBusinessProfileQueryService access, IPlanQueryService limits, ICurrentActor actor, IUnitOfWork work, IBusinessRevisionCommandService revisions) : IBusinessMemberCommandService
 {
     public async Task<Result<MemberSnapshot, EChangeBusinessMemberStatusError>> Handle(ChangeBusinessMemberStatusCommand command, CancellationToken cancellationToken = default)
     {
@@ -53,45 +53,6 @@ public sealed class BusinessMemberCommandService(IBusinessMemberRepository membe
                 "identity_unavailable" => EChangeBusinessMemberStatusError.IdentityUnavailable,
                 "unexpected" => EChangeBusinessMemberStatusError.UnexpectedError,
                 _ => EChangeBusinessMemberStatusError.UnexpectedError
-            })
-            {
-                Field = error.Field
-            };
-        }
-    }
-
-    public async Task<Result<MemberSnapshot, EUpdateBusinessMemberError>> Handle(UpdateBusinessMemberCommand command, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var id = command.Id;
-            var details = command;
-            var member = await members.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
-            await access.Handle(new RequireBusinessAccessQuery(member.BusinessId.ToString(), actor.UserId, true), cancellationToken);
-            var email = Guard.Email(details.Email);
-            var existing = await members.FindByEmailAsync(email, cancellationToken);
-            Guard.Require(existing.All(candidate => candidate.Id == member.Id), "conflict", "email");
-            Guard.Require((await invitations.FindPendingByEmailAsync(email, cancellationToken)).Count == 0, "conflict", "email");
-            member.Update(details.DisplayName, email);
-            await work.CompleteAsync(cancellationToken);
-            return new Result<MemberSnapshot, EUpdateBusinessMemberError>.Success(ToMemberSnapshot(member));
-        }
-        catch (DomainException error)
-        {
-            return new Result<MemberSnapshot, EUpdateBusinessMemberError>.Failure(error.Code switch
-            {
-                "validation" => EUpdateBusinessMemberError.InvalidInput,
-                "unauthenticated" => EUpdateBusinessMemberError.Unauthenticated,
-                "forbidden" => EUpdateBusinessMemberError.Forbidden,
-                "not_found" => EUpdateBusinessMemberError.NotFound,
-                "conflict" => EUpdateBusinessMemberError.Conflict,
-                "concurrency" => EUpdateBusinessMemberError.ConcurrencyConflict,
-                "capacity" => EUpdateBusinessMemberError.CapacityExceeded,
-                "transition" => EUpdateBusinessMemberError.InvalidTransition,
-                "provider_unavailable" => EUpdateBusinessMemberError.ProviderUnavailable,
-                "identity_unavailable" => EUpdateBusinessMemberError.IdentityUnavailable,
-                "unexpected" => EUpdateBusinessMemberError.UnexpectedError,
-                _ => EUpdateBusinessMemberError.UnexpectedError
             })
             {
                 Field = error.Field

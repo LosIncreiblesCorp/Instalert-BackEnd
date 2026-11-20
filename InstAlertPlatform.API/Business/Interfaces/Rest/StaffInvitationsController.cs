@@ -16,14 +16,6 @@ namespace InstAlertPlatform.API.Business.Interfaces.Rest;
 [ProducesResponseType(typeof(ProblemDetails), 500)]
 public sealed class StaffInvitationsController(IStaffInvitationCommandService staffInvitationCommands, IStaffInvitationQueryService staffInvitationQueries, IStringLocalizer<SharedResource> localizer) : ControllerBase
 {
-    [HttpPut("{id}")]
-    [ProducesResponseType(typeof(StaffInvitationResource), 200)]
-    public async Task<IActionResult> Update(string id, UpdateStaffInvitationResource resource, CancellationToken cancellationToken)
-    {
-        var result = await staffInvitationCommands.Handle(UpdateStaffInvitationCommandFromResourceAssembler.ToCommandFromResource(resource, id), cancellationToken);
-        return ActionResultFromUpdateStaffInvitationResultAssembler.ToActionResultFromUpdateStaffInvitationResult(result, this, localizer, snapshot => Ok(StaffInvitationResourceFromSnapshotAssembler.ToResourceFromSnapshot(snapshot)));
-    }
-
     [HttpGet("me")]
     [ProducesResponseType(typeof(List<StaffInvitationResource>), 200)]
     public async Task<IActionResult> Own(CancellationToken cancellationToken)

@@ -48,10 +48,8 @@ The `EnforceSingleCommerceAssignments` migration adds these unique indexes and a
 | GET | `/api/v1/businesses/{id}/seats` | Read server-calculated capacity |
 | GET | `/api/v1/businesses/{id}/members` | Read staff |
 | GET/POST | `/api/v1/businesses/{id}/invitations` | Read or create invitations |
-| PUT | `/api/v1/business-members/{id}` | Edit employee name and email |
 | POST | `/api/v1/business-members/{id}/activation` | Activate with available capacity |
 | POST | `/api/v1/business-members/{id}/deactivation` | Deactivate while preserving the association |
-| PUT | `/api/v1/staff-invitations/{id}` | Edit a pending invitation |
 | POST | `/api/v1/staff-invitations/{id}/cancellation` | Cancel and release the reserved seat |
 | POST | `/api/v1/staff-invitations/{id}/resend` | Request delivery again |
 | GET/PUT | `/api/v1/profiles/{userId}` | Read or update the caller's personal data |
@@ -158,3 +156,11 @@ This feature introduces IAM without changing the existing demonstration flows in
 ```powershell
 dotnet build instalert-platform.sln
 ```
+
+## Employee invitations and access
+
+Invitation and membership operations use bearer sessions. The administrator invites employees only into their own commerce and with a current subscription and an available seat. A pending invitation reserves one seat. IAM provisions an employee account or rotates its temporary credential; personal passwords are never replaced by an invitation resend. Pending invitations reserve the email across commerces, and inactive memberships retain their original association.
+
+Employees change their temporary password, complete their personal profile, then accept an invitation addressed to their verified account email. `GET /api/v1/staff-invitations/me` lists only those pending invitations and includes the commerce name. Acceptance checks identity, profile, subscription and capacity again.
+
+The administrator can deactivate or reactivate a membership, but cannot edit an incorporated employee's name, email or password. Correct a pending invitation's email by cancelling it and creating another invitation. Deactivation releases a seat without moving or deleting the employee's account; reactivation requires a valid subscription and capacity.
