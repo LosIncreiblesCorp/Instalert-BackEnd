@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Shared.Application.Internal.EventHandlers;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;

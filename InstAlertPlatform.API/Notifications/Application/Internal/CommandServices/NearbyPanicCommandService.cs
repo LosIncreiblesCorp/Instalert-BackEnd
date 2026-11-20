@@ -6,7 +6,6 @@ using InstAlertPlatform.API.Contacts.Domain.Model.Queries;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
 using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Repositories;
 using System.Text.Json;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;

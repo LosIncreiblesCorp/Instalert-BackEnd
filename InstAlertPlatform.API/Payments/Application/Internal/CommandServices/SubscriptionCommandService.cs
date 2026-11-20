@@ -7,7 +7,6 @@ using InstAlertPlatform.API.Profiles.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Payments.Application.Errors;
 using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;

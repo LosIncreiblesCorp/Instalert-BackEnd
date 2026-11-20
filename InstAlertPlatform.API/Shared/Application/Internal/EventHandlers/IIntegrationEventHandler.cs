@@ -1,4 +1,4 @@
-namespace InstAlertPlatform.API.Shared.Application.Patterns;
+namespace InstAlertPlatform.API.Shared.Application.Internal.EventHandlers;
 public interface IIntegrationEventHandler
 {
     string EventType { get; }

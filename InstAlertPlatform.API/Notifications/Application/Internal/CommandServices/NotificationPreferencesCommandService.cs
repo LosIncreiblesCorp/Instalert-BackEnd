@@ -2,7 +2,6 @@ using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Notifications.Application.CommandServices;
 using InstAlertPlatform.API.Notifications.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Notifications.Application.Errors;
 using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;

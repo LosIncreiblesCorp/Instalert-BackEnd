@@ -1,7 +1,6 @@
 using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Iam.Interfaces.Acl;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;

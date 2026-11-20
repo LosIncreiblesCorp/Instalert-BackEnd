@@ -1,12 +1,12 @@
 using InstAlertPlatform.API.Business.Application.CommandServices;
 using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Business.Application.Services.Snapshots;
+using InstAlertPlatform.API.Business.Domain.Model.Events;
 using InstAlertPlatform.API.Payments.Application.QueryServices;
 using InstAlertPlatform.API.Iam.Interfaces.Acl;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
 using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Business.Application.Errors;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
@@ -41,7 +41,7 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
                     _ => "unexpected"
                 }, seatRevisionFailure.Field);
             await invitations.AddAsync(invitation, cancellationToken);
-            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new InvitationDeliveryFact(invitation.Id, businessId, actor.UserId, invitation.Email, invitation.DeliverySequence, credential)), cancellationToken);
+            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new StaffInvitationRequestedEvent(invitation.Id, businessId, actor.UserId, invitation.Email, invitation.DeliverySequence, credential)), cancellationToken);
             await work.CompleteAsync(cancellationToken);
             return new Result<InvitationSnapshot, EInviteStaffMemberError>.Success(ToInvitationSnapshot(invitation));
         }
@@ -178,7 +178,7 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
             Guard.Require(memberId is null || (await members.FindByUserIdAsync(memberId, cancellationToken)).Count == 0, "conflict", "email");
             var credential = await identity.PrepareInvitationCredential(invitation.Email, cancellationToken);
             invitation.Resend(clock.GetUtcNow());
-            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new InvitationDeliveryFact(invitation.Id, invitation.BusinessId.ToString(), actor.UserId, invitation.Email, invitation.DeliverySequence, credential)), cancellationToken);
+            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new StaffInvitationRequestedEvent(invitation.Id, invitation.BusinessId.ToString(), actor.UserId, invitation.Email, invitation.DeliverySequence, credential)), cancellationToken);
             await work.CompleteAsync(cancellationToken);
             return new Result<InvitationSnapshot, EResendStaffInvitationError>.Success(ToInvitationSnapshot(invitation));
         }

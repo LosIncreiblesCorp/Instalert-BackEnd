@@ -14,7 +14,6 @@ using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
 using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Dashboard.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Dashboard.Domain.Repositories;
 using InstAlertPlatform.API.Shared.Application.Patterns;

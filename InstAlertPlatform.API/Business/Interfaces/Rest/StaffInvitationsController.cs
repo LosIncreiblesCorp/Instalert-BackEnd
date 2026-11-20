@@ -3,7 +3,6 @@ using InstAlertPlatform.API.Business.Application.QueryServices;
 using Microsoft.AspNetCore.Authorization;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Interfaces.Rest.Resources;
