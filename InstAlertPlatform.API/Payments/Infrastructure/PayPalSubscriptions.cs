@@ -36,6 +36,35 @@ public sealed class PayPalSubscriptions(HttpClient client, IConfiguration config
         return new(p.GetProperty("id").GetString()!, p.GetProperty("plan_id").GetString()!, p.GetProperty("status").GetString()!, p.TryGetProperty("custom_id", out var custom) ? custom.GetString() : null, until, paid);
     }
 
+    public async Task<string> Create(string planId, string checkoutId, CancellationToken token)
+    {
+        await Authorize(token);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "v1/billing/subscriptions");
+        request.Headers.Add("PayPal-Request-Id", checkoutId);
+        request.Content = JsonContent.Create(new { plan_id = planId, custom_id = checkoutId,
+            application_context = new { shipping_preference = "NO_SHIPPING", user_action = "SUBSCRIBE_NOW" } });
+        using var response = await client.SendAsync(request, token);
+        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
+        return Guard.Text(json.RootElement.GetProperty("id").GetString(), 100, "subscriptionId");
+    }
+
+    public async Task Suspend(string id, CancellationToken token)
+    {
+        await Authorize(token);
+        using var response = await client.PostAsJsonAsync("v1/billing/subscriptions/" + Uri.EscapeDataString(id) + "/suspend",
+            new { reason = "Customer paused future renewals" }, token);
+        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
+    }
+
+    public async Task Activate(string id, CancellationToken token)
+    {
+        await Authorize(token);
+        using var response = await client.PostAsJsonAsync("v1/billing/subscriptions/" + Uri.EscapeDataString(id) + "/activate",
+            new { reason = "Customer resumed renewals" }, token);
+        Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
+    }
+
     public async Task Cancel(string id, CancellationToken token)
     {
         await Authorize(token);

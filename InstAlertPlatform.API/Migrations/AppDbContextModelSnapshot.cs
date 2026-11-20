@@ -916,6 +916,11 @@ namespace InstAlertPlatform.API.Migrations
                         .HasColumnType("varchar(80)")
                         .HasColumnName("plan_id");
 
+                    b.Property<string>("ProviderSubscriptionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("provider_subscription_id");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("updated_at");

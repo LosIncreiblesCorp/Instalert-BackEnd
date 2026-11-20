@@ -27,6 +27,7 @@ public static class ModelBuilderExtensions
         builder.Entity<Subscription>().HasIndex(x => x.PlanId).HasDatabaseName("i_x_subscriptions_plan_id");
         builder.Entity<Subscription>().HasOne<Plan>().WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("f_k_subscriptions_plans_plan_id");
         builder.Entity<CheckoutIntent>().ToTable("checkout_intents");
+        builder.Entity<CheckoutIntent>().Property(x => x.ProviderSubscriptionId).HasMaxLength(100);
         builder.Entity<CheckoutIntent>().Property(x => x.BusinessId).HasMaxLength(80);
         builder.Entity<CheckoutIntent>().Property(x => x.PlanId).HasMaxLength(80);
         builder.Entity<CheckoutIntent>().HasIndex(x => new { x.BusinessId, x.Completed, x.ExpiresAt }).HasDatabaseName("i_x_checkout_intents_business_id_completed_expires_at");
