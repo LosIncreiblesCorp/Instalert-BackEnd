@@ -77,7 +77,7 @@ Commerce members may read history; only an alert's creator can modify its locati
 
 ## Payments API
 
-All business subscription routes require `User-Id` in Development; use `synthetic-admin` for the seeded business. The server checks business ownership and validates the selected plan against the configured PayPal plan before returning checkout data.
+Business subscription routes require an administrator bearer token, a personal password and ownership of the commerce. Checkout also requires a complete personal profile. Public registration creates administrators; it does not activate a subscription.
 
 | Method | Route | Purpose |
 |---|---|---|
@@ -91,7 +91,13 @@ All business subscription routes require `User-Id` in Development; use `syntheti
 | POST | `/api/v1/businesses/{businessId}/subscription/plan-change/verification` | Verify the PayPal plan change; body: `{"checkoutId":"…"}` |
 | POST | `/api/v1/payments/paypal/webhook` | Verify and reconcile supported PayPal webhook events |
 
-Configure PayPal outside source control with `PayPal__ClientId`, `PayPal__ClientSecret`, and `PayPal__WebhookId`. `PayPal__ApiBaseUrl` can override the API host; Development defaults to PayPal Sandbox and other environments default to PayPal Live. The webhook endpoint requires the real webhook ID from the corresponding PayPal environment; it returns `503` when that ID is not configured. Do not send `User-Id` as webhook authentication: PayPal transmission headers and server-side signature verification are required. Checkout creation does not itself create a PayPal subscription or charge a payment; the buyer approval and subsequent server verification are separate steps.
+Configure `PayPal__ClientId` and `PayPal__ClientSecret` outside source control. The API always uses PayPal Sandbox, including Production. Optional `PayPal__Plans__essential`, `PayPal__Plans__professional` and `PayPal__Plans__business` override the catalog's provider plan IDs; each must be an active monthly USD plan with the matching price.
+
+Checkout creates a provider subscription awaiting buyer approval and stores its ID. It never grants access on its own. The server verifies the provider plan, correlation, completed payment, paid period and seat capacity before activation. The browser receives only public checkout data.
+
+Apply the `LinkSubscriptionCheckout` migration before running this version. Enable periodic synchronization with `Payments__Reconciliation__Enabled=true`; `Payments__Reconciliation__IntervalSeconds` defaults to 300 (30–3600). This worker checks pending approvals and known subscriptions using a separate scope per item. It does not depend on a webhook. The optional webhook additionally requires `PayPal__WebhookId` from the same Sandbox application.
+
+Cancellation suspends future renewals and retains the paid period. `POST /api/v1/businesses/{businessId}/subscription/renewal` resumes a suspended agreement before that period expires. The worker finally cancels a scheduled agreement after expiry. Plan changes apply only after PayPal confirms the target plan and capacity is checked again; verifying a revision does not extend the paid period.
 
 ## Emergency contacts API
 

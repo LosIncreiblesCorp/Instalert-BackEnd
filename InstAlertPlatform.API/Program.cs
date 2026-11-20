@@ -141,7 +141,9 @@ builder.Services.AddScoped<IAlertPreferencesQueryService, AlertPreferencesQueryS
 builder.Services.AddScoped<IAlertPreferencesCommandService, AlertPreferencesCommandService>();
 builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
 builder.Services.AddScoped<ISubscriptionQueryService, SubscriptionQueryService>();
-builder.Services.AddScoped<ISubscriptionCommandService, SubscriptionCommandService>();
+builder.Services.AddScoped<SubscriptionCommandService>();
+builder.Services.AddScoped<ISubscriptionCommandService>(p => p.GetRequiredService<SubscriptionCommandService>());
+builder.Services.AddHostedService<InstAlertPlatform.API.Payments.Infrastructure.PaymentReconciliationWorker>();
 builder.Services.AddScoped<IPaymentReconciliationCommandService, PaymentReconciliationCommandService>();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
