@@ -4,7 +4,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore;
+namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Outbox;
 public sealed class OutboxProcessor(AppDbContext db, IEnumerable<IIntegrationEventHandler> handlers, TimeProvider clock, ILogger<OutboxProcessor> logger)
 {
     public async Task<int> Process(CancellationToken token)

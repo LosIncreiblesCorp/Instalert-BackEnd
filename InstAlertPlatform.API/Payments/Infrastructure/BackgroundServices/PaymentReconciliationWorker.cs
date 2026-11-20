@@ -5,7 +5,7 @@ using InstAlertPlatform.API.Payments.Domain.Model.Commands;
 using InstAlertPlatform.API.Payments.Domain.Repositories;
 using InstAlertPlatform.API.Shared.Domain.Model;
 
-namespace InstAlertPlatform.API.Payments.Infrastructure;
+namespace InstAlertPlatform.API.Payments.Infrastructure.BackgroundServices;
 
 public sealed class PaymentReconciliationWorker(IServiceScopeFactory scopes, IConfiguration configuration,
     ILogger<PaymentReconciliationWorker> logger) : BackgroundService

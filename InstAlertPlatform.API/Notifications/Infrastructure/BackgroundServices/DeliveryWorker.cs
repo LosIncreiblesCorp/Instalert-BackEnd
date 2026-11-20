@@ -3,7 +3,7 @@ using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace InstAlertPlatform.API.Notifications.Infrastructure;
+namespace InstAlertPlatform.API.Notifications.Infrastructure.BackgroundServices;
 public sealed class DeliveryWorker(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<DeliveryWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken token)

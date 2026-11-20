@@ -3,7 +3,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;
 
-namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore;
+namespace InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Outbox;
 public sealed class OutboxWorker(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<OutboxWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
