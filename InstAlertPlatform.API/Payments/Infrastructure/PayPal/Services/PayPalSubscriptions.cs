@@ -96,7 +96,11 @@ public sealed class PayPalSubscriptions(HttpClient client, IConfiguration config
         Guard.Require(response.IsSuccessStatusCode, "provider_unavailable");
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
         var result = new List<ProviderTransaction>();
-        foreach (var transaction in json.RootElement.GetProperty("transactions").EnumerateArray())
+        Guard.Require(json.RootElement.ValueKind == JsonValueKind.Object, "provider_unavailable");
+        if (!json.RootElement.TryGetProperty("transactions", out var transactions))
+            return result;
+        Guard.Require(transactions.ValueKind == JsonValueKind.Array, "provider_unavailable");
+        foreach (var transaction in transactions.EnumerateArray())
         {
             if (transaction.GetProperty("status").GetString() != "COMPLETED")
                 continue;
