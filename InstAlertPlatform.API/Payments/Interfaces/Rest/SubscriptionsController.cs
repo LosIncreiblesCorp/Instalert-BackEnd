@@ -48,6 +48,15 @@ public sealed class SubscriptionsController(ISubscriptionQueryService subscripti
         return ActionResultFromCancelSubscriptionRenewalResultAssembler.ToActionResultFromCancelSubscriptionRenewalResult(result, this, localizer, snapshot => Ok(SubscriptionResourceFromSnapshotAssembler.ToResourceFromSnapshot(snapshot)));
     }
 
+    [HttpPost("renewal")]
+    [ProducesResponseType(typeof(SubscriptionResource), 200)]
+    public async Task<IActionResult> Resume(string businessId, CancellationToken cancellationToken)
+    {
+        var result = await subscriptionCommands.Handle(new ResumeSubscriptionRenewalCommand(businessId), cancellationToken);
+        return ActionResultFromResumeSubscriptionRenewalResultAssembler.ToActionResultFromResumeSubscriptionRenewalResult(result, this, localizer,
+            snapshot => Ok(SubscriptionResourceFromSnapshotAssembler.ToResourceFromSnapshot(snapshot)));
+    }
+
     [HttpGet("/api/v1/businesses/{businessId}/billing-history")]
     [ProducesResponseType(typeof(List<PaymentResource>), 200)]
     public async Task<IActionResult> History(string businessId, CancellationToken cancellationToken)

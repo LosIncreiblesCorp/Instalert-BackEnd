@@ -214,6 +214,33 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
         }
     }
 
+    public async Task<Result<SubscriptionSnapshot, EResumeSubscriptionRenewalError>> Handle(ResumeSubscriptionRenewalCommand command, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await business.Handle(new RequireBusinessAccessQuery(command.BusinessId, actor.UserId, true), cancellationToken);
+            var s = (await subscriptions.FindByBusinessIdAsync(command.BusinessId, cancellationToken)).SingleOrDefault() ?? throw new DomainException("not_found");
+            Guard.Require(s.IsEntitled(clock.GetUtcNow()), "transition");
+            var current = await provider.Get(s.ProviderSubscriptionId, cancellationToken);
+            if (current.Status == "SUSPENDED") await provider.Activate(s.ProviderSubscriptionId, cancellationToken);
+            else Guard.Require(current.Status == "ACTIVE", "transition");
+            if (s.CancelAtPeriodEnd) s.ResumeRenewal(clock.GetUtcNow());
+            await work.CompleteAsync(cancellationToken);
+            return new Result<SubscriptionSnapshot, EResumeSubscriptionRenewalError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), s));
+        }
+        catch (DomainException error)
+        {
+            return new Result<SubscriptionSnapshot, EResumeSubscriptionRenewalError>.Failure(error.Code switch
+            {
+                "forbidden" => EResumeSubscriptionRenewalError.Forbidden,
+                "not_found" => EResumeSubscriptionRenewalError.NotFound,
+                "transition" => EResumeSubscriptionRenewalError.InvalidTransition,
+                "provider_unavailable" => EResumeSubscriptionRenewalError.ProviderUnavailable,
+                _ => EResumeSubscriptionRenewalError.UnexpectedError
+            });
+        }
+    }
+
     internal async Task<SubscriptionSnapshot> VerifyPlanChange(string businessId, string checkoutId, CancellationToken cancellationToken)
     {
             var intent = await intents.FindByIdAsync(checkoutId, cancellationToken) ?? throw new DomainException("not_found");

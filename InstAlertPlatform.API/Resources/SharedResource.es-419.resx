@@ -610,4 +610,6 @@
 
 <data name="ErrorDetail429" xml:space="preserve"><value>Espera un minuto antes de intentarlo nuevamente.</value></data>
 
+  <data name="Subscriptions_Resume_Summary" xml:space="preserve"><value>Reactivar renovación de suscripción</value></data>
+  <data name="Subscriptions_Resume_Description" xml:space="preserve"><value>Reactiva los cobros futuros mientras el periodo pagado siga vigente.</value></data>
 </root>

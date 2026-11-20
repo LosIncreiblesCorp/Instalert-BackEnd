@@ -610,4 +610,6 @@
 
 <data name="ErrorDetail429" xml:space="preserve"><value>Wait a minute before trying again.</value></data>
 
+  <data name="Subscriptions_Resume_Summary" xml:space="preserve"><value>Resume subscription renewal</value></data>
+  <data name="Subscriptions_Resume_Description" xml:space="preserve"><value>Reactivates future renewals while the paid period is still valid.</value></data>
 </root>
