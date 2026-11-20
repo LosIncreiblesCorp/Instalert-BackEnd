@@ -124,7 +124,36 @@ Inbox pages use newest creation time first and ID as a stable tie-breaker, with 
 
 `Workers__Enabled=true` enables processing of committed alert events into in-app notifications. The backend determines recipients, active membership, preferences and distance from saved commerce coordinates; the browser does not create these records. Receipt is retained after a panic is resolved or preferences change. Email delivery additionally requires the separate Brevo and Email configuration; disabling Email does not disable the in-app inbox.
 
-## Verification
+## Identity and access
+
+IAM uses BCrypt password hashes and signed JWT bearer tokens. Public registration creates administrator accounts only; it does not create a commerce, subscription or employee membership. Employee credentials are prepared through the internal IAM facade for the invitation workflow.
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| POST | `/api/v1/users` | Register an administrator with `email` and `password` |
+| POST | `/api/v1/tokens` | Sign in with `email` and `password` |
+| GET | `/api/v1/sessions/current` | Read the authenticated identity and onboarding status |
+| PUT | `/api/v1/users/me/password` | Change a password using `currentPassword` and `newPassword` |
+| DELETE | `/api/v1/tokens/current` | Revoke the account's existing access tokens |
+
+Registration and sign-in are anonymous and rate limited. The other IAM endpoints require `Authorization: Bearer <accessToken>`; a demonstration `User-Id` header does not grant access to them. Password changes return a replacement token and invalidate previously issued tokens. Passwords require at least ten characters, a letter and a digit, and cannot exceed 72 UTF-8 bytes.
+
+Configure these environment variables before starting the API:
+
+```text
+TokenSettings__Secret
+TokenSettings__Issuer
+TokenSettings__Audience
+TokenSettings__AccessTokenMinutes
+```
+
+The signing key must contain at least 32 bytes. Access token duration defaults to 10080 minutes (7 days) and accepts 5 through 10080 minutes. Keep the signing key outside source control. Apply the `AddIamUsers` migration explicitly to the intended database; the migration adds only the `users` table and its unique email index.
+
+Temporary employee credentials expire after 24 hours. IAM stores their hash and protects the temporary delivery payload with ASP.NET Core Data Protection. Existing personal passwords are never recovered or included in invitation messages. Set `DataProtection__KeysPath` to a writable persistent key directory and protect that directory before enabling delivery across restarts or multiple instances.
+
+This feature introduces IAM without changing the existing demonstration flows in other modules. Connecting invitation delivery, enforcing onboarding on every module, and retiring demonstration identities are separate integration steps. The session's `hasApplicationAccess` value describes readiness; the remaining modules do not yet enforce it through IAM authorization policies.
+
+## Build verification
 
 ```powershell
 dotnet build instalert-platform.sln
