@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Payments.Application.Services.Snapshots;
 using InstAlertPlatform.API.Payments.Application.Errors;
 using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Resources;

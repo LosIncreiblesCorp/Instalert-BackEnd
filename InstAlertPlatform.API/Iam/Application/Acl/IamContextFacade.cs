@@ -1,5 +1,5 @@
+using InstAlertPlatform.API.Profiles.Application.QueryServices;
 using System.Security.Cryptography;
-using InstAlertPlatform.API.Profiles.Application.Services;
 using System.Text.Json;
 using InstAlertPlatform.API.Iam.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Iam.Domain.Model.Aggregates;

@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Payments.Application.CommandServices;
 using InstAlertPlatform.API.Payments.Interfaces.Rest.Resources;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;

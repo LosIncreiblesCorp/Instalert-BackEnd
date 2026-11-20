@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Notifications.Application.CommandServices;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Notifications.Application.Errors;
 using System.Text.Json;

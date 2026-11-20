@@ -1,3 +1,6 @@
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Payments.Application.QueryServices;
+using InstAlertPlatform.API.Payments.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Payments.Application.Services;

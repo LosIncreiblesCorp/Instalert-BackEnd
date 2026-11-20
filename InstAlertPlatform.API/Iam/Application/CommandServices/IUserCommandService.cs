@@ -1,4 +1,4 @@
-using InstAlertPlatform.API.Iam.Application.Services;
+using InstAlertPlatform.API.Iam.Application.Services.Snapshots;
 using InstAlertPlatform.API.Iam.Domain.Model.Commands;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Iam.Application.Errors;

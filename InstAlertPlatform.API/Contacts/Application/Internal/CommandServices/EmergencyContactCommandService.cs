@@ -1,7 +1,9 @@
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Contacts.Application.CommandServices;
+using InstAlertPlatform.API.Contacts.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Contacts.Application.Errors;
-using InstAlertPlatform.API.Contacts.Application.Services;
 using InstAlertPlatform.API.Contacts.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Contacts.Domain.Model.Commands;
 using InstAlertPlatform.API.Contacts.Domain.Repositories;

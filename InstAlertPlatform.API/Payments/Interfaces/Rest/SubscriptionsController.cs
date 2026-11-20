@@ -1,3 +1,5 @@
+using InstAlertPlatform.API.Payments.Application.CommandServices;
+using InstAlertPlatform.API.Payments.Application.QueryServices;
 using Microsoft.AspNetCore.Authorization;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;

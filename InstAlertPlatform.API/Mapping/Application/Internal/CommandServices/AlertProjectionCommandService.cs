@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Mapping.Application.CommandServices;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Mapping.Domain.Repositories;
@@ -5,7 +6,6 @@ using System.Text.Json;
 using InstAlertPlatform.API.Mapping.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
-using InstAlertPlatform.API.Mapping.Application.Services;
 using InstAlertPlatform.API.Mapping.Application.Errors;
 using InstAlertPlatform.API.Mapping.Domain.Model.Commands;
 

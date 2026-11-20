@@ -1,5 +1,8 @@
+using InstAlertPlatform.API.Alert.Application.QueryServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Contacts.Application.QueryServices;
+using InstAlertPlatform.API.Notifications.Application.CommandServices;
 using InstAlertPlatform.API.Contacts.Domain.Model.Queries;
-using InstAlertPlatform.API.Contacts.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
 using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;

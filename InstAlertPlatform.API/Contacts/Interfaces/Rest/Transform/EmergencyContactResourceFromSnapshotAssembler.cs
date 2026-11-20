@@ -1,4 +1,4 @@
-using InstAlertPlatform.API.Contacts.Application.Services;
+using InstAlertPlatform.API.Contacts.Application.Services.Snapshots;
 using InstAlertPlatform.API.Contacts.Interfaces.Rest.Resources;
 
 namespace InstAlertPlatform.API.Contacts.Interfaces.Rest.Transform;

@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Notifications.Application.Services.Snapshots;
 using InstAlertPlatform.API.Notifications.Application.Errors;
 using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Resources;

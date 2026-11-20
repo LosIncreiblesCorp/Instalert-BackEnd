@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Business.Application.CommandServices;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
 using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Application.Services;

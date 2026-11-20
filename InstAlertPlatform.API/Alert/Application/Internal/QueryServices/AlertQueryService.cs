@@ -1,3 +1,6 @@
+using InstAlertPlatform.API.Alert.Application.QueryServices;
+using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
+using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Alert.Application.Services;
