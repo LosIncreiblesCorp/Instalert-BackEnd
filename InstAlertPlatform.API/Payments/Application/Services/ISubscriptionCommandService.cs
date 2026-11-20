@@ -8,6 +8,7 @@ public interface ISubscriptionCommandService
 {
     Task<Result<SubscriptionCheckoutSnapshot, EBeginSubscriptionCheckoutError>> Handle(BeginSubscriptionCheckoutCommand command, CancellationToken cancellationToken = default);
     Task<Result<SubscriptionSnapshot, EVerifySubscriptionError>> Handle(VerifySubscriptionCommand command, CancellationToken cancellationToken = default);
+    Task<Result<SubscriptionSnapshot, EResumeSubscriptionRenewalError>> Handle(ResumeSubscriptionRenewalCommand command, CancellationToken cancellationToken = default);
     Task<Result<SubscriptionSnapshot, ECancelSubscriptionRenewalError>> Handle(CancelSubscriptionRenewalCommand command, CancellationToken cancellationToken = default);
     Task<Result<SubscriptionCheckoutSnapshot, EChangeSubscriptionPlanError>> Handle(ChangeSubscriptionPlanCommand command, CancellationToken cancellationToken = default);
     Task<Result<SubscriptionSnapshot, EVerifySubscriptionPlanChangeError>> Handle(VerifySubscriptionPlanChangeCommand command, CancellationToken cancellationToken = default);

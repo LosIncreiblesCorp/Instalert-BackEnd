@@ -12,6 +12,7 @@ public static class LocalizedOpenApiAssembler
         ["Subscriptions.Begin"] = "Subscriptions_Begin",
         ["Subscriptions.Verify"] = "Subscriptions_Verify",
         ["Subscriptions.Cancel"] = "Subscriptions_Cancel",
+        ["Subscriptions.Resume"] = "Subscriptions_Resume",
         ["Subscriptions.History"] = "Subscriptions_History",
         ["Subscriptions.Change"] = "Subscriptions_Change",
         ["Subscriptions.VerifyChange"] = "Subscriptions_VerifyChange",

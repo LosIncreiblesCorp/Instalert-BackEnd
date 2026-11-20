@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Iam.Interfaces.Acl;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
 using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Business.Application.Errors;
@@ -11,7 +12,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Business.Application.Internal.CommandServices;
-public sealed class StaffInvitationCommandService(IBusinessMemberRepository members, IStaffInvitationRepository invitations, IOutboxMessageRepository outbox, IBusinessProfileQueryService access, IPlanQueryService limits, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, IBusinessRevisionCommandService revisions) : IStaffInvitationCommandService
+public sealed class StaffInvitationCommandService(IBusinessMemberRepository members, IStaffInvitationRepository invitations, IOutboxMessageRepository outbox, IBusinessProfileQueryService access, IPlanQueryService limits, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, IBusinessRevisionCommandService revisions, IIamContextFacade identity) : IStaffInvitationCommandService
 {
     public async Task<Result<InvitationSnapshot, EInviteStaffMemberError>> Handle(InviteStaffMemberCommand command, CancellationToken cancellationToken = default)
     {
@@ -24,6 +25,9 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
             var invitation = new StaffInvitation(businessId, details.DisplayName, details.Email, clock.GetUtcNow());
             Guard.Require((await invitations.FindPendingByEmailAsync(invitation.Email, cancellationToken)).Count == 0, "conflict", "email");
             Guard.Require((await members.FindByEmailAsync(invitation.Email, cancellationToken)).Count == 0, "conflict", "email");
+            var existingUserId = await identity.FindUserIdByEmail(invitation.Email, cancellationToken);
+            Guard.Require(existingUserId is null || (await members.FindByUserIdAsync(existingUserId, cancellationToken)).Count == 0, "conflict", "email");
+            var credential = await identity.PrepareInvitationCredential(invitation.Email, cancellationToken);
             var seatRevisionResult = (await revisions.Handle(new TouchBusinessSeatsCommand(businessId), cancellationToken));
             if (seatRevisionResult is Result<bool, ETouchBusinessSeatsError>.Failure seatRevisionFailure)
                 throw new DomainException(seatRevisionFailure.Error switch
@@ -33,7 +37,7 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
                     _ => "unexpected"
                 }, seatRevisionFailure.Field);
             await invitations.AddAsync(invitation, cancellationToken);
-            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new InvitationDeliveryFact(invitation.Id, businessId, actor.UserId, invitation.Email, invitation.DeliverySequence)), cancellationToken);
+            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new InvitationDeliveryFact(invitation.Id, businessId, actor.UserId, invitation.Email, invitation.DeliverySequence, credential)), cancellationToken);
             await work.CompleteAsync(cancellationToken);
             return new Result<InvitationSnapshot, EInviteStaffMemberError>.Success(ToInvitationSnapshot(invitation));
         }
@@ -67,6 +71,7 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
             var id = command.Id;
             var invitation = await invitations.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
             Guard.Require(!actor.IsAdministrator, "forbidden");
+            await identity.RequireCompletedEmployee(actor.UserId, cancellationToken);
             var email = actor.VerifiedEmail;
             Guard.Require(!string.IsNullOrWhiteSpace(email), "identity_unavailable");
             Guard.Require(string.Equals(email, invitation.Email, StringComparison.OrdinalIgnoreCase), "forbidden");
@@ -165,8 +170,11 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
             var id = command.Id;
             var invitation = await invitations.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
             await access.Handle(new RequireBusinessAccessQuery(invitation.BusinessId.ToString(), actor.UserId, true), cancellationToken);
+            var memberId = await identity.FindUserIdByEmail(invitation.Email, cancellationToken);
+            Guard.Require(memberId is null || (await members.FindByUserIdAsync(memberId, cancellationToken)).Count == 0, "conflict", "email");
+            var credential = await identity.PrepareInvitationCredential(invitation.Email, cancellationToken);
             invitation.Resend(clock.GetUtcNow());
-            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new InvitationDeliveryFact(invitation.Id, invitation.BusinessId.ToString(), actor.UserId, invitation.Email, invitation.DeliverySequence)), cancellationToken);
+            await outbox.AddAsync(new OutboxMessage("business.invitation.requested.v1", new InvitationDeliveryFact(invitation.Id, invitation.BusinessId.ToString(), actor.UserId, invitation.Email, invitation.DeliverySequence, credential)), cancellationToken);
             await work.CompleteAsync(cancellationToken);
             return new Result<InvitationSnapshot, EResendStaffInvitationError>.Success(ToInvitationSnapshot(invitation));
         }
@@ -186,43 +194,6 @@ public sealed class StaffInvitationCommandService(IBusinessMemberRepository memb
                 "identity_unavailable" => EResendStaffInvitationError.IdentityUnavailable,
                 "unexpected" => EResendStaffInvitationError.UnexpectedError,
                 _ => EResendStaffInvitationError.UnexpectedError
-            })
-            {
-                Field = error.Field
-            };
-        }
-    }
-
-    public async Task<Result<InvitationSnapshot, EUpdateStaffInvitationError>> Handle(UpdateStaffInvitationCommand command, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var id = command.Id;
-            var invitation = await invitations.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
-            await access.Handle(new RequireBusinessAccessQuery(invitation.BusinessId.ToString(), actor.UserId, true), cancellationToken);
-            var email = Guard.Email(command.Email);
-            Guard.Require((await invitations.FindPendingByEmailAsync(email, cancellationToken)).All(candidate => candidate.Id == invitation.Id), "conflict", "email");
-            Guard.Require((await members.FindByEmailAsync(email, cancellationToken)).Count == 0, "conflict", "email");
-            invitation.Update(command.DisplayName, email);
-            await work.CompleteAsync(cancellationToken);
-            return new Result<InvitationSnapshot, EUpdateStaffInvitationError>.Success(ToInvitationSnapshot(invitation));
-        }
-        catch (DomainException error)
-        {
-            return new Result<InvitationSnapshot, EUpdateStaffInvitationError>.Failure(error.Code switch
-            {
-                "validation" => EUpdateStaffInvitationError.InvalidInput,
-                "unauthenticated" => EUpdateStaffInvitationError.Unauthenticated,
-                "forbidden" => EUpdateStaffInvitationError.Forbidden,
-                "not_found" => EUpdateStaffInvitationError.NotFound,
-                "conflict" => EUpdateStaffInvitationError.Conflict,
-                "concurrency" => EUpdateStaffInvitationError.ConcurrencyConflict,
-                "capacity" => EUpdateStaffInvitationError.CapacityExceeded,
-                "transition" => EUpdateStaffInvitationError.InvalidTransition,
-                "provider_unavailable" => EUpdateStaffInvitationError.ProviderUnavailable,
-                "identity_unavailable" => EUpdateStaffInvitationError.IdentityUnavailable,
-                "unexpected" => EUpdateStaffInvitationError.UnexpectedError,
-                _ => EUpdateStaffInvitationError.UnexpectedError
             })
             {
                 Field = error.Field

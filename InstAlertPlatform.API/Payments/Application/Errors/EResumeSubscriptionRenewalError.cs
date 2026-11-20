@@ -1,5 +1,5 @@
-namespace InstAlertPlatform.API.Business.Application.Errors;
-public enum EUpdateBusinessMemberError
+namespace InstAlertPlatform.API.Payments.Application.Errors;
+public enum EResumeSubscriptionRenewalError
 {
     InvalidInput,
     Unauthenticated,
@@ -11,5 +11,4 @@ public enum EUpdateBusinessMemberError
     CapacityExceeded,
     ProviderUnavailable,
     InvalidTransition,
-    IdentityUnavailable,
 }

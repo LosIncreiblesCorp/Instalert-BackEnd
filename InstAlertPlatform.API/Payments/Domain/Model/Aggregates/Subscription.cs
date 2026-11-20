@@ -35,13 +35,23 @@ public sealed partial class Subscription : AuditedEntity
         CancelAtPeriodEnd = true;
     }
 
-    public void ReplaceDevelopmentSubscription(string planId, string providerId, DateTimeOffset paidUntil, DateTimeOffset now)
+    public void ResumeRenewal(DateTimeOffset now)
     {
-        Guard.Require(ProviderSubscriptionId.StartsWith("synthetic-development-", StringComparison.Ordinal), "transition");
-        var replacement = Guard.Text(providerId, 100, "subscriptionId");
-        Guard.Require(!replacement.StartsWith("synthetic-", StringComparison.Ordinal), "validation", "subscriptionId");
+        Guard.Require(IsEntitled(now) && CancelAtPeriodEnd, "transition");
+        CancelAtPeriodEnd = false;
+    }
+
+    public void ChangePlan(string planId)
+    {
+        Guard.Require(Status == "active", "transition");
+        PlanId = planId;
+    }
+
+    public void ReplaceExpiredSubscription(string planId, string providerId, DateTimeOffset paidUntil, DateTimeOffset now)
+    {
+        Guard.Require(!IsEntitled(now), "transition");
+        ProviderSubscriptionId = Guard.Text(providerId, 100, "subscriptionId");
         Confirm(planId, paidUntil, now);
-        ProviderSubscriptionId = replacement;
         CancelAtPeriodEnd = false;
     }
 
