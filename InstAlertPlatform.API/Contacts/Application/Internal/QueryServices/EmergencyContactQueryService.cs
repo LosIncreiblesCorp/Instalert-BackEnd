@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Contacts.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Contacts.Application.QueryServices;
 using InstAlertPlatform.API.Contacts.Application.Services.Snapshots;
@@ -11,10 +12,11 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Contacts.Application.Internal.QueryServices;
-public sealed class EmergencyContactQueryService(IEmergencyContactRepository contacts, ICurrentActor actor, IBusinessProfileQueryService business) : IEmergencyContactQueryService
+public sealed class EmergencyContactQueryService(IEmergencyContactRepository contacts, ICurrentActor actor, IBusinessProfileQueryService business, IContactsAccess access) : IEmergencyContactQueryService
 {
     public async Task<IReadOnlyList<ContactSnapshot>> Handle(GetEmergencyContactsQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var id = actor.UserId;
         Guard.Require(await business.Handle(new GetOperationalMembershipQuery(id), cancellationToken), "forbidden");
         return (await contacts.FindByEmployeeIdAsync(id, cancellationToken)).Select(ToContactSnapshot).ToList();
@@ -22,6 +24,7 @@ public sealed class EmergencyContactQueryService(IEmergencyContactRepository con
 
     public async Task<ContactSnapshot> Handle(GetEmergencyContactByIdQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var id = query.Id;
         return ToContactSnapshot(await Own(id, cancellationToken));
     }
