@@ -7,7 +7,7 @@ using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCor
 using Microsoft.EntityFrameworkCore;
 
 namespace InstAlertPlatform.API.Notifications.Infrastructure.Delivery;
-public sealed class DeliveryProcessor(AppDbContext db, IDeliveryGateway gateway, IBusinessProfileQueryService business, TimeProvider clock, ILogger<DeliveryProcessor> logger, IIamContextFacade identity, IConfiguration configuration)
+public sealed class DeliveryProcessor(AppDbContext db, IDeliveryGateway gateway, IBusinessProfileQueryService business, TimeProvider clock, ILogger<DeliveryProcessor> logger, IIamContextFacade identity, IConfiguration configuration, InstAlertPlatform.API.Profiles.Interfaces.Acl.IProfilesContextFacade profiles)
 {
     public async Task Process(CancellationToken token)
     {
@@ -54,7 +54,14 @@ public sealed class DeliveryProcessor(AppDbContext db, IDeliveryGateway gateway,
                         "\nTemporary password: " + password + "\nThis password expires 24 hours after it was issued. Change it before completing your profile and accepting the invitation.");
                 }
 
-                await gateway.Send(new(d.Id, d.Channel, d.Destination, d.SourceInvitationId is null ? "InstAlert emergency" : "InstAlert business invitation", d.SourceInvitationId is null ? "A panic alert was confirmed. Contact the person who designated you as an emergency contact." : invitationText!, d.SourceAlertId), token);
+                var emergencyText = "A panic alert was confirmed. Contact the person who designated you as an emergency contact.";
+                if (d.SourceInvitationId is null)
+                {
+                    var name = await profiles.FindDisplayName(d.UserId, token);
+                    if (name is not null)
+                        emergencyText = "A panic alert was confirmed. Please contact " + name + ", who designated you as an emergency contact.";
+                }
+                await gateway.Send(new(d.Id, d.Channel, d.Destination, d.SourceInvitationId is null ? "InstAlert emergency" : "InstAlert business invitation", d.SourceInvitationId is null ? emergencyText : invitationText!, d.SourceAlertId), token);
                 d.Sent(clock.GetUtcNow());
             }
             catch (OperationCanceledException)when (token.IsCancellationRequested)
