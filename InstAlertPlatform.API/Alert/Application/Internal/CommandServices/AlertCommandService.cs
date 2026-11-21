@@ -17,12 +17,13 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Alert.Application.Internal.CommandServices;
-public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPreferencesRepository preferences, IOutboxMessageRepository outbox, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, IPanicPreparationTokens proofs, IBusinessRevisionCommandService revisions) : IAlertCommandService
+public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPreferencesRepository preferences, IOutboxMessageRepository outbox, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, IPanicPreparationTokens proofs, IBusinessRevisionCommandService revisions, IAlertAccess access) : IAlertCommandService
 {
     public async Task<Result<PanicPreparationSnapshot, EPreparePanicError>> Handle(PreparePanicCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
+            await access.Require(cancellationToken);
             var businessId = command.BusinessId;
             var location = command.Location;
             var lat = command.Latitude;
@@ -60,6 +61,7 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
     {
         try
         {
+            await access.Require(cancellationToken);
             var preparationToken = command.PreparationToken;
             var location = command.Location;
             var latitude = command.Latitude;
@@ -114,6 +116,7 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
     {
         try
         {
+            await access.Require(cancellationToken);
             var c = command;
             await business.Handle(new RequireBusinessAccessQuery(c.BusinessId, actor.UserId, false), cancellationToken);
             var a = AlertRecord.Report(c.BusinessId, actor.UserId, c.Kind, c.Category, c.Description, c.Location, c.Latitude, c.Longitude, c.Moment, clock.GetUtcNow());
@@ -147,6 +150,7 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
     {
         try
         {
+            await access.Require(cancellationToken);
             var id = command.Id;
             var location = command.Location;
             var latitude = command.Latitude;
@@ -182,6 +186,7 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
     {
         try
         {
+            await access.Require(cancellationToken);
             var id = command.Id;
             var a = await Own(id, cancellationToken);
             if (a.Resolve(clock.GetUtcNow()))
@@ -217,6 +222,7 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
     {
         try
         {
+            await access.Require(cancellationToken);
             var id = command.Id;
             var c = command;
             var a = await Own(id, cancellationToken);
@@ -251,6 +257,7 @@ public sealed class AlertCommandService(IAlertRecordRepository records, IAlertPr
     {
         try
         {
+            await access.Require(cancellationToken);
             var id = command.Id;
             var a = await Own(id, cancellationToken);
             a.Complete(clock.GetUtcNow());
