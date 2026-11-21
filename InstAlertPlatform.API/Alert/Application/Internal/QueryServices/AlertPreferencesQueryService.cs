@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Alert.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Alert.Application.QueryServices;
 using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
 using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
@@ -9,10 +10,11 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Alert.Application.Internal.QueryServices;
-public sealed class AlertPreferencesQueryService(IAlertPreferencesRepository preferences, ICurrentActor actor) : IAlertPreferencesQueryService
+public sealed class AlertPreferencesQueryService(IAlertPreferencesRepository preferences, ICurrentActor actor, IAlertAccess access) : IAlertPreferencesQueryService
 {
     public async Task<AlertPreferencesSnapshot> Handle(GetPanicPreferencesQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var userId = query.UserId;
         Guard.Require(userId == actor.UserId, "forbidden");
         var p = await preferences.FindByIdAsync(userId, cancellationToken);

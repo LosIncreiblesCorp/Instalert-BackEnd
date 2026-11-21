@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Alert.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Alert.Application.QueryServices;
 using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Application.QueryServices;
@@ -11,10 +12,11 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Alert.Application.Internal.QueryServices;
-public sealed class AlertQueryService(IAlertRecordRepository records, IOutboxMessageRepository outbox, IBusinessProfileQueryService business, ICurrentActor actor) : IAlertQueryService
+public sealed class AlertQueryService(IAlertRecordRepository records, IOutboxMessageRepository outbox, IBusinessProfileQueryService business, ICurrentActor actor, IAlertAccess access) : IAlertQueryService
 {
     public async Task<List<AlertFact>> Handle(GetAlertsQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var businessId = query.BusinessId;
         var status = query.Status;
         var page = query.Page;
@@ -26,6 +28,7 @@ public sealed class AlertQueryService(IAlertRecordRepository records, IOutboxMes
 
     public async Task<AlertFact> Handle(GetAlertByIdQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var id = query.Id;
         var a = await records.FindByIdAsync(id, cancellationToken) ?? throw new DomainException("not_found");
         await business.Handle(new RequireBusinessAccessQuery(a.BusinessId, actor.UserId, false), cancellationToken);

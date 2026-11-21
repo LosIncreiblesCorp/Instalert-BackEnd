@@ -69,6 +69,7 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Internal.OutboundServices.IAlertAccess, InstAlertPlatform.API.Alert.Infrastructure.Acl.AlertAccess>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web)
 {
@@ -207,8 +208,7 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer<InstAlertPlatform.API.Iam.Infrastructure.Tokens.Jwt.Configuration.BearerOperationTransformer>();
     options.AddOperationTransformer((operation, context, token) =>
     {
-        if (context.Description.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor action
-            && action.ControllerTypeInfo.Namespace?.Contains(".Iam.", StringComparison.Ordinal) == true)
+        if (context.Description.ActionDescriptor.EndpointMetadata.OfType<Microsoft.AspNetCore.Authorization.IAuthorizeData>().Any())
             return Task.CompletedTask;
         if (builder.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Demo:Enabled"))
         {
