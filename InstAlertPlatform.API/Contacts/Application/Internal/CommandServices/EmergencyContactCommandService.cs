@@ -1,7 +1,9 @@
+using InstAlertPlatform.API.Contacts.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Contacts.Application.CommandServices;
+using InstAlertPlatform.API.Contacts.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Contacts.Application.Errors;
-using InstAlertPlatform.API.Contacts.Application.Services;
 using InstAlertPlatform.API.Contacts.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Contacts.Domain.Model.Commands;
 using InstAlertPlatform.API.Contacts.Domain.Repositories;
@@ -10,12 +12,13 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Contacts.Application.Internal.CommandServices;
-public sealed class EmergencyContactCommandService(IEmergencyContactRepository contacts, ICurrentActor actor, IUnitOfWork work, IBusinessProfileQueryService business) : IEmergencyContactCommandService
+public sealed class EmergencyContactCommandService(IEmergencyContactRepository contacts, ICurrentActor actor, IUnitOfWork work, IBusinessProfileQueryService business, IContactsAccess access) : IEmergencyContactCommandService
 {
     public async Task<Result<ContactSnapshot, ECreateEmergencyContactError>> Handle(CreateEmergencyContactCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
+            await access.Require(cancellationToken);
             Guard.Require(await business.Handle(new GetOperationalMembershipQuery(actor.UserId), cancellationToken), "forbidden");
             var contact = new EmergencyContact(actor.UserId, command.FullName, command.Relationship, command.Phone, command.Email, command.Notes);
             await contacts.AddAsync(contact, cancellationToken);
@@ -45,6 +48,7 @@ public sealed class EmergencyContactCommandService(IEmergencyContactRepository c
     {
         try
         {
+            await access.Require(cancellationToken);
             var id = command.Id;
             var contact = await Own(id, cancellationToken);
             contact.Update(command.FullName, command.Relationship, command.Phone, command.Email, command.Notes);
@@ -74,6 +78,7 @@ public sealed class EmergencyContactCommandService(IEmergencyContactRepository c
     {
         try
         {
+            await access.Require(cancellationToken);
             var id = command.Id;
             var contact = await Own(id, cancellationToken);
             contacts.Remove(contact);

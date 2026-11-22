@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
+using InstAlertPlatform.API.Contacts.Application.CommandServices;
+using InstAlertPlatform.API.Contacts.Application.QueryServices;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Contacts.Application.Services;
 using InstAlertPlatform.API.Contacts.Domain.Model.Commands;
 using InstAlertPlatform.API.Contacts.Domain.Model.Queries;
 using InstAlertPlatform.API.Contacts.Interfaces.Rest.Resources;
@@ -9,6 +11,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InstAlertPlatform.API.Contacts.Interfaces.Rest;
+[Authorize(Policy = "PersonalProfile")]
 [ApiController, Route("api/v1/[controller]"), Tags("Contacts")]
 [ProducesResponseType(typeof(ProblemDetails), 400), ProducesResponseType(typeof(ProblemDetails), 401), ProducesResponseType(typeof(ProblemDetails), 403), ProducesResponseType(typeof(ProblemDetails), 404), ProducesResponseType(typeof(ProblemDetails), 409), ProducesResponseType(typeof(ProblemDetails), 503)]
 [ProducesResponseType(typeof(ProblemDetails), 500)]

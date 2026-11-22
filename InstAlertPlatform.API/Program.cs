@@ -1,19 +1,43 @@
+using InstAlertPlatform.API.Alert.Application.CommandServices;
+using InstAlertPlatform.API.Alert.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Alert.Application.QueryServices;
+using InstAlertPlatform.API.Business.Application.CommandServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Contacts.Application.CommandServices;
+using InstAlertPlatform.API.Contacts.Application.QueryServices;
+using InstAlertPlatform.API.Dashboard.Application.CommandServices;
+using InstAlertPlatform.API.Dashboard.Application.QueryServices;
+using InstAlertPlatform.API.Mapping.Application.CommandServices;
+using InstAlertPlatform.API.Mapping.Application.Internal.EventHandlers;
+using InstAlertPlatform.API.Mapping.Application.QueryServices;
+using InstAlertPlatform.API.Notifications.Application.CommandServices;
+using InstAlertPlatform.API.Notifications.Application.Internal.EventHandlers;
+using InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Notifications.Application.QueryServices;
+using InstAlertPlatform.API.Notifications.Infrastructure.BackgroundServices;
+using InstAlertPlatform.API.Notifications.Infrastructure.Brevo.Services;
+using InstAlertPlatform.API.Notifications.Infrastructure.Delivery;
+using InstAlertPlatform.API.Payments.Application.CommandServices;
+using InstAlertPlatform.API.Payments.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Payments.Application.QueryServices;
+using InstAlertPlatform.API.Payments.Infrastructure.BackgroundServices;
+using InstAlertPlatform.API.Payments.Infrastructure.PayPal.Services;
+using InstAlertPlatform.API.Profiles.Application.CommandServices;
+using InstAlertPlatform.API.Profiles.Application.QueryServices;
+using InstAlertPlatform.API.Shared.Application.Internal.EventHandlers;
+using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Outbox;
+using Microsoft.AspNetCore.DataProtection;
+using InstAlertPlatform.API.Iam.Infrastructure.Pipeline.Middleware.Extensions;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
 using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 using InstAlertPlatform.API.Shared.Domain.Model;
-using InstAlertPlatform.API.Profiles.Application.Services;
-using InstAlertPlatform.API.Payments.Infrastructure;
-using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCore;
 using InstAlertPlatform.API.Alert.Infrastructure;
-using InstAlertPlatform.API.Notifications.Infrastructure;
 using InstAlertPlatform.API.Notifications.Application.Internal.CommandServices;
 using InstAlertPlatform.API.Notifications.Application.Internal.QueryServices;
-using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Dashboard.Application.Internal.QueryServices;
 using InstAlertPlatform.API.Dashboard.Application.Internal.CommandServices;
-using InstAlertPlatform.API.Dashboard.Application.Services;
 using InstAlertPlatform.API.Dashboard.Domain.Repositories;
 using InstAlertPlatform.API.Dashboard.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
 using InstAlertPlatform.API.Shared.Application.Patterns;
@@ -27,10 +51,6 @@ using InstAlertPlatform.API.Alert.Application.Internal.QueryServices;
 using InstAlertPlatform.API.Alert.Application.Internal.CommandServices;
 using InstAlertPlatform.API.Payments.Application.Internal.QueryServices;
 using InstAlertPlatform.API.Payments.Application.Internal.CommandServices;
-using InstAlertPlatform.API.Payments.Application.Services;
-using InstAlertPlatform.API.Contacts.Application.Services;
-using InstAlertPlatform.API.Business.Application.Services;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
@@ -49,13 +69,25 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<InstAlertPlatform.API.Contacts.Application.Internal.OutboundServices.IContactsAccess, InstAlertPlatform.API.Contacts.Infrastructure.Acl.ContactsAccess>();
+builder.Services.AddScoped<InstAlertPlatform.API.Profiles.Interfaces.Acl.IProfilesContextFacade, InstAlertPlatform.API.Profiles.Application.Acl.ProfilesContextFacade>();
+builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Internal.OutboundServices.IAlertAccess, InstAlertPlatform.API.Alert.Infrastructure.Acl.AlertAccess>();
+builder.Services.AddScoped<InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices.INotificationsAccess, InstAlertPlatform.API.Notifications.Infrastructure.Acl.NotificationsAccess>();
+builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.Internal.OutboundServices.IMappingAccess, InstAlertPlatform.API.Mapping.Infrastructure.Acl.MappingAccess>();
+builder.Services.AddScoped<InstAlertPlatform.API.Dashboard.Application.Internal.OutboundServices.IDashboardAccess, InstAlertPlatform.API.Dashboard.Infrastructure.Acl.DashboardAccess>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web)
 {
     Converters = { new UtcIsoTimestampJsonConverter() }
 });
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddDataProtection();
+builder.Services.AddIdentityAuthentication();
+builder.Services.AddAuthorization(options => options.AddPolicy("PersonalProfile", policy =>
+    policy.RequireAuthenticatedUser().RequireClaim("password_change_required", "false")));
+var dataProtection = builder.Services.AddDataProtection();
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+    dataProtection.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
 builder.Services.AddScoped<ICurrentActor, HttpCurrentActor>();
 builder.Services.AddSingleton<AuditableEntityInterceptor>();
 builder.Services.AddDbContext<AppDbContext>((provider, options) =>
@@ -114,9 +146,9 @@ builder.Services.AddScoped<IStaffInvitationCommandService, StaffInvitationComman
 builder.Services.AddScoped<IStaffInvitationQueryService, StaffInvitationQueryService>();
 builder.Services.AddScoped<IAlertCommandService, AlertCommandService>();
 builder.Services.AddScoped<IAlertQueryService, AlertQueryService>();
-builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.Services.IAlertProjectionCommandService, InstAlertPlatform.API.Mapping.Application.Internal.CommandServices.AlertProjectionCommandService>();
-builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.Services.IMappingQueryService, InstAlertPlatform.API.Mapping.Application.Internal.QueryServices.MappingQueryService>();
-builder.Services.AddScoped<InstAlertPlatform.API.Shared.Application.Patterns.IIntegrationEventHandler, InstAlertPlatform.API.Mapping.Infrastructure.AlertProjectionHandler>();
+builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.CommandServices.IAlertProjectionCommandService, InstAlertPlatform.API.Mapping.Application.Internal.CommandServices.AlertProjectionCommandService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.QueryServices.IMappingQueryService, InstAlertPlatform.API.Mapping.Application.Internal.QueryServices.MappingQueryService>();
+builder.Services.AddScoped<InstAlertPlatform.API.Shared.Application.Internal.EventHandlers.IIntegrationEventHandler, InstAlertPlatform.API.Mapping.Application.Internal.EventHandlers.AlertProjectionHandler>();
 builder.Services.AddScoped<IIntegrationEventHandler, NearbyPanicHandler>();
 builder.Services.AddScoped<IIntegrationEventHandler, InvitationDeliveryHandler>();
 builder.Services.AddScoped<INearbyPanicCommandService, NearbyPanicCommandService>();
@@ -133,7 +165,9 @@ builder.Services.AddScoped<IAlertPreferencesQueryService, AlertPreferencesQueryS
 builder.Services.AddScoped<IAlertPreferencesCommandService, AlertPreferencesCommandService>();
 builder.Services.AddScoped<IPlanQueryService, PlanQueryService>();
 builder.Services.AddScoped<ISubscriptionQueryService, SubscriptionQueryService>();
-builder.Services.AddScoped<ISubscriptionCommandService, SubscriptionCommandService>();
+builder.Services.AddScoped<SubscriptionCommandService>();
+builder.Services.AddScoped<ISubscriptionCommandService>(p => p.GetRequiredService<SubscriptionCommandService>());
+builder.Services.AddHostedService<InstAlertPlatform.API.Payments.Infrastructure.BackgroundServices.PaymentReconciliationWorker>();
 builder.Services.AddScoped<IPaymentReconciliationCommandService, PaymentReconciliationCommandService>();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -174,8 +208,13 @@ builder.Services.AddOpenApi(options =>
     options.AddOperationTransformer(InstAlertPlatform.API.Payments.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddOperationTransformer(InstAlertPlatform.API.Profiles.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
     options.AddSchemaTransformer(OpenApiLocalizationAssembler.TransformSchemaAsync);
+    options.AddOperationTransformer(InstAlertPlatform.API.Iam.Interfaces.Rest.Transform.LocalizedOpenApiAssembler.TransformOperationAsync);
+    options.AddDocumentTransformer<InstAlertPlatform.API.Iam.Infrastructure.Tokens.Jwt.Configuration.BearerDocumentTransformer>();
+    options.AddOperationTransformer<InstAlertPlatform.API.Iam.Infrastructure.Tokens.Jwt.Configuration.BearerOperationTransformer>();
     options.AddOperationTransformer((operation, context, token) =>
     {
+        if (context.Description.ActionDescriptor.EndpointMetadata.OfType<Microsoft.AspNetCore.Authorization.IAuthorizeData>().Any())
+            return Task.CompletedTask;
         if (builder.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Demo:Enabled"))
         {
             operation.Parameters ??= [];
@@ -222,6 +261,9 @@ localization.ApplyCurrentCultureToResponseHeaders = true;
 app.UseRequestLocalization(localization);
 app.UseExceptionHandler();
 app.UseCors();
+app.UseAuthentication();
+app.UseRateLimiter();
+app.UseAuthorization();
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Documentation:Enabled"))

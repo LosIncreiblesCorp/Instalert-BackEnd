@@ -1,5 +1,4 @@
 using InstAlertPlatform.API.Contacts.Application.Errors;
-using InstAlertPlatform.API.Contacts.Application.Services;
 using InstAlertPlatform.API.Resources;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Infrastructure.Interfaces.Asp.Configuration.Extensions;

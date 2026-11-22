@@ -1,6 +1,8 @@
+using InstAlertPlatform.API.Profiles.Application.CommandServices;
+using InstAlertPlatform.API.Profiles.Application.QueryServices;
+using Microsoft.AspNetCore.Authorization;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Profiles.Application.Services;
 using InstAlertPlatform.API.Profiles.Domain.Model.Commands;
 using InstAlertPlatform.API.Profiles.Domain.Model.Queries;
 using InstAlertPlatform.API.Profiles.Interfaces.Rest.Resources;
@@ -9,6 +11,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InstAlertPlatform.API.Profiles.Interfaces.Rest;
+[Authorize]
 [ApiController, Route("api/v1/[controller]"), Tags("Profiles")]
 [ProducesResponseType(typeof(ProblemDetails), 400), ProducesResponseType(typeof(ProblemDetails), 401), ProducesResponseType(typeof(ProblemDetails), 403), ProducesResponseType(typeof(ProblemDetails), 404), ProducesResponseType(typeof(ProblemDetails), 409), ProducesResponseType(typeof(ProblemDetails), 503)]
 [ProducesResponseType(typeof(ProblemDetails), 500)]
@@ -22,6 +25,7 @@ public sealed class ProfilesController(IProfileQueryService profileQueries, IPro
         return Ok(UserProfileResourceFromSnapshotAssembler.ToResourceFromSnapshot(snapshot));
     }
 
+    [Authorize(Policy = "PersonalProfile")]
     [HttpPut("{userId}")]
     [ProducesResponseType(typeof(UserProfileResource), 200)]
     public async Task<IActionResult> Update(string userId, UpdateUserProfileResource resource, CancellationToken cancellationToken)

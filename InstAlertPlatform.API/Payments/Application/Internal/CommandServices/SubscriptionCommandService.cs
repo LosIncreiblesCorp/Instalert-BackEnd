@@ -1,9 +1,14 @@
+using InstAlertPlatform.API.Business.Application.CommandServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Payments.Application.CommandServices;
+using InstAlertPlatform.API.Payments.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Payments.Application.Services.Snapshots;
+using InstAlertPlatform.API.Profiles.Application.QueryServices;
+using InstAlertPlatform.API.Profiles.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Application.Errors;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Business.Domain.Model.Commands;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Payments.Application.Errors;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Payments.Domain.Model.Commands;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
@@ -13,7 +18,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Payments.Application.Internal.CommandServices;
-public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscriptionRepository subscriptions, ICheckoutIntentRepository intents, IPaymentTransactionRepository transactions, IPayPalSubscriptions provider, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, IBusinessRevisionCommandService revisions, IHostEnvironment environment, IConfiguration configuration) : ISubscriptionCommandService
+public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscriptionRepository subscriptions, ICheckoutIntentRepository intents, IPaymentTransactionRepository transactions, IPayPalSubscriptions provider, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, IBusinessRevisionCommandService revisions, IConfiguration configuration, IProfileQueryService profiles) : ISubscriptionCommandService
 {
     public async Task<Result<SubscriptionCheckoutSnapshot, EBeginSubscriptionCheckoutError>> Handle(BeginSubscriptionCheckoutCommand command, CancellationToken cancellationToken = default)
     {
@@ -22,15 +27,25 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
             var id = command.Id;
             var planId = command.PlanId;
             await business.Handle(new RequireBusinessAccessQuery(id, actor.UserId, true), cancellationToken);
+            var profile = await profiles.Handle(new GetUserProfileQuery(actor.UserId), cancellationToken);
+            Guard.Require(!string.IsNullOrWhiteSpace(profile.FirstName) && !string.IsNullOrWhiteSpace(profile.LastName) && profile.Dni.Length == 8, "forbidden");
             var plan = await plans.FindByIdAsync(planId, cancellationToken) ?? throw new DomainException("not_found");
             var existing = (await subscriptions.FindByBusinessIdAsync(id, cancellationToken)).SingleOrDefault();
-            Guard.Require(!IsDevelopmentSubscription(existing) || CanReplaceDevelopmentSubscription(existing), "policy_unavailable");
-            Guard.Require(existing is null || !existing.IsEntitled(clock.GetUtcNow()) || CanReplaceDevelopmentSubscription(existing), "policy_unavailable");
-            await provider.ValidatePlan(plan.ProviderPlanId, plan.Price, plan.Currency, cancellationToken);
+            Guard.Require(!IsDevelopmentSubscription(existing), "policy_unavailable");
+            Guard.Require(existing is null || !existing.IsEntitled(clock.GetUtcNow()), "policy_unavailable");
+            if (existing is not null)
+            {
+                var old = await provider.Get(existing.ProviderSubscriptionId, cancellationToken);
+                Guard.Require(!(old.Status == "ACTIVE" && old.PaidUntil > clock.GetUtcNow()), "conflict");
+                if (old.Status is "ACTIVE" or "SUSPENDED") await provider.Cancel(existing.ProviderSubscriptionId, cancellationToken);
+            }
+            await provider.ValidatePlan((configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId), plan.Price, plan.Currency, cancellationToken);
             var intent = new CheckoutIntent(id, plan.Id, clock.GetUtcNow());
             await intents.AddAsync(intent, cancellationToken);
             await work.CompleteAsync(cancellationToken);
-            return new Result<SubscriptionCheckoutSnapshot, EBeginSubscriptionCheckoutError>.Success(new(intent.Id, plan.Id, plan.ProviderPlanId, intent.Id, intent.ExpiresAt, null));
+            intent.LinkSubscription(await provider.Create((configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId), intent.Id, cancellationToken));
+            await work.CompleteAsync(cancellationToken);
+            return new Result<SubscriptionCheckoutSnapshot, EBeginSubscriptionCheckoutError>.Success(new(intent.Id, plan.Id, (configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId), intent.Id, intent.ExpiresAt, intent.ProviderSubscriptionId));
         }
         catch (DomainException error)
         {
@@ -63,42 +78,8 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
             var checkoutId = command.CheckoutId;
             var subscriptionId = command.SubscriptionId;
             await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, true), cancellationToken);
-            var intent = await intents.FindByIdAsync(checkoutId, cancellationToken) ?? throw new DomainException("not_found");
-            Guard.Require(intent.BusinessId == businessId, "forbidden");
-            var previous = (await subscriptions.FindByBusinessIdAsync(businessId, cancellationToken)).SingleOrDefault();
-            if (intent.Completed && previous?.ProviderSubscriptionId == subscriptionId)
-                return new Result<SubscriptionSnapshot, EVerifySubscriptionError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), previous));
-            var plan = await plans.FindByIdAsync(intent.PlanId, cancellationToken) ?? throw new DomainException("not_found");
-            await provider.ValidatePlan(plan.ProviderPlanId, plan.Price, plan.Currency, cancellationToken);
-            var result = await provider.Get(subscriptionId, cancellationToken);
-            Guard.Require(result.Id == subscriptionId && result.PlanId == plan.ProviderPlanId && result.CustomId == intent.Id && result.Status == "ACTIVE" && result.HasConfirmedPayment && result.PaidUntil > clock.GetUtcNow(), "conflict");
-            var paid = await provider.Transactions(subscriptionId, clock.GetUtcNow().AddDays(-31), clock.GetUtcNow(), cancellationToken);
-            var confirmedPayment = paid.Where(p => p.Currency == plan.Currency && p.Amount == plan.Price).MaxBy(p => p.PaidAt);
-            Guard.Require(confirmedPayment is not null && result.PaidUntil <= confirmedPayment.PaidAt.AddMonths(1).AddDays(1), "conflict");
-            var usage = await business.Handle(new GetBusinessSeatUsageQuery(businessId), cancellationToken);
-            Guard.Require(usage.ActiveEmployees + usage.ReservedSeats <= plan.MaxEmployees, "capacity");
-            Guard.Require(previous is null || previous.ProviderSubscriptionId == subscriptionId || CanReplaceDevelopmentSubscription(previous), "conflict");
-            var s = previous ?? new Subscription(businessId, plan.Id, subscriptionId);
-            if (CanReplaceDevelopmentSubscription(s))
-                s.ReplaceDevelopmentSubscription(plan.Id, subscriptionId, result.PaidUntil!.Value, clock.GetUtcNow());
-            else
-                s.Confirm(plan.Id, result.PaidUntil!.Value, clock.GetUtcNow());
-            if (previous is null)
-                await subscriptions.AddAsync(s, cancellationToken);
-            foreach (var payment in paid)
-                if ((await transactions.FindByProviderTransactionIdAsync(payment.Id, cancellationToken)).Count == 0)
-                    await transactions.AddAsync(new PaymentTransaction(businessId, payment.Id, payment.Amount, payment.Currency, payment.PaidAt), cancellationToken);
-            intent.Complete(clock.GetUtcNow());
-            var seatRevisionResult = (await revisions.Handle(new TouchBusinessSeatsCommand(businessId), cancellationToken));
-            if (seatRevisionResult is Result<bool, ETouchBusinessSeatsError>.Failure seatRevisionFailure)
-                throw new DomainException(seatRevisionFailure.Error switch
-                {
-                    ETouchBusinessSeatsError.NotFound => "not_found",
-                    ETouchBusinessSeatsError.UnexpectedError => "unexpected",
-                    _ => "unexpected"
-                }, seatRevisionFailure.Field);
-            await work.CompleteAsync(cancellationToken);
-            return new Result<SubscriptionSnapshot, EVerifySubscriptionError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), s));
+            return new Result<SubscriptionSnapshot, EVerifySubscriptionError>.Success(
+                await VerifyPayment(businessId, checkoutId, subscriptionId, cancellationToken));
         }
         catch (DomainException error)
         {
@@ -131,7 +112,10 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
             var s = (await subscriptions.FindByBusinessIdAsync(businessId, cancellationToken)).SingleOrDefault() ?? throw new DomainException("not_found");
             if (s.CancelAtPeriodEnd)
                 return new Result<SubscriptionSnapshot, ECancelSubscriptionRenewalError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), s));
-            await provider.Cancel(s.ProviderSubscriptionId, cancellationToken);
+            Guard.Require(s.IsEntitled(clock.GetUtcNow()), "transition");
+            var current = await provider.Get(s.ProviderSubscriptionId, cancellationToken);
+            if (current.Status == "ACTIVE") await provider.Suspend(s.ProviderSubscriptionId, cancellationToken);
+            else Guard.Require(current.Status is "SUSPENDED" or "CANCELLED", "transition");
             s.ScheduleCancellation();
             await work.CompleteAsync(cancellationToken);
             return new Result<SubscriptionSnapshot, ECancelSubscriptionRenewalError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), s));
@@ -166,18 +150,18 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
             var planId = command.PlanId;
             await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, true), cancellationToken);
             var current = (await subscriptions.FindByBusinessIdAsync(businessId, cancellationToken)).SingleOrDefault() ?? throw new DomainException("not_found");
-            Guard.Require(!IsDevelopmentSubscription(current) || CanReplaceDevelopmentSubscription(current), "transition");
+            Guard.Require(!IsDevelopmentSubscription(current), "transition");
             Guard.Require(current.IsEntitled(clock.GetUtcNow()) && !current.CancelAtPeriodEnd, "transition");
             var plan = await plans.FindByIdAsync(planId, cancellationToken) ?? throw new DomainException("not_found");
-            Guard.Require(plan.Id != current.PlanId || CanReplaceDevelopmentSubscription(current), "conflict");
+            Guard.Require(plan.Id != current.PlanId, "conflict");
             var usage = await business.Handle(new GetBusinessSeatUsageQuery(businessId), cancellationToken);
             Guard.Require(usage.ActiveEmployees + usage.ReservedSeats <= plan.MaxEmployees, "capacity");
-            await provider.ValidatePlan(plan.ProviderPlanId, plan.Price, plan.Currency, cancellationToken);
+            await provider.ValidatePlan((configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId), plan.Price, plan.Currency, cancellationToken);
             var intent = new CheckoutIntent(businessId, plan.Id, clock.GetUtcNow());
+            intent.LinkSubscription(current.ProviderSubscriptionId);
             await intents.AddAsync(intent, cancellationToken);
             await work.CompleteAsync(cancellationToken);
-            var replacement = CanReplaceDevelopmentSubscription(current);
-            return new Result<SubscriptionCheckoutSnapshot, EChangeSubscriptionPlanError>.Success(new(intent.Id, plan.Id, plan.ProviderPlanId, replacement ? intent.Id : null, intent.ExpiresAt, replacement ? null : current.ProviderSubscriptionId));
+            return new Result<SubscriptionCheckoutSnapshot, EChangeSubscriptionPlanError>.Success(new(intent.Id, plan.Id, (configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId), null, intent.ExpiresAt, current.ProviderSubscriptionId));
         }
         catch (DomainException error)
         {
@@ -208,28 +192,8 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
             var businessId = command.BusinessId;
             var checkoutId = command.CheckoutId;
             await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, true), cancellationToken);
-            var intent = await intents.FindByIdAsync(checkoutId, cancellationToken) ?? throw new DomainException("not_found");
-            Guard.Require(intent.BusinessId == businessId, "forbidden");
-            var current = (await subscriptions.FindByBusinessIdAsync(businessId, cancellationToken)).SingleOrDefault() ?? throw new DomainException("not_found");
-            if (intent.Completed && current.PlanId == intent.PlanId)
-                return new Result<SubscriptionSnapshot, EVerifySubscriptionPlanChangeError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), current));
-            var plan = await plans.FindByIdAsync(intent.PlanId, cancellationToken) ?? throw new DomainException("not_found");
-            var response = await provider.Get(current.ProviderSubscriptionId, cancellationToken);
-            Guard.Require(response.Id == current.ProviderSubscriptionId && response.Status == "ACTIVE" && response.PlanId == plan.ProviderPlanId && response.PaidUntil > clock.GetUtcNow(), "conflict");
-            var usage = await business.Handle(new GetBusinessSeatUsageQuery(businessId), cancellationToken);
-            Guard.Require(usage.ActiveEmployees + usage.ReservedSeats <= plan.MaxEmployees, "capacity");
-            current.Confirm(plan.Id, response.PaidUntil!.Value, clock.GetUtcNow());
-            intent.Complete(clock.GetUtcNow());
-            var seatRevisionResult = (await revisions.Handle(new TouchBusinessSeatsCommand(businessId), cancellationToken));
-            if (seatRevisionResult is Result<bool, ETouchBusinessSeatsError>.Failure seatRevisionFailure)
-                throw new DomainException(seatRevisionFailure.Error switch
-                {
-                    ETouchBusinessSeatsError.NotFound => "not_found",
-                    ETouchBusinessSeatsError.UnexpectedError => "unexpected",
-                    _ => "unexpected"
-                }, seatRevisionFailure.Field);
-            await work.CompleteAsync(cancellationToken);
-            return new Result<SubscriptionSnapshot, EVerifySubscriptionPlanChangeError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), current));
+            return new Result<SubscriptionSnapshot, EVerifySubscriptionPlanChangeError>.Success(
+                await VerifyPlanChange(businessId, checkoutId, cancellationToken));
         }
         catch (DomainException error)
         {
@@ -253,9 +217,108 @@ public sealed class SubscriptionCommandService(IPlanRepository plans, ISubscript
         }
     }
 
+    public async Task<Result<SubscriptionSnapshot, EResumeSubscriptionRenewalError>> Handle(ResumeSubscriptionRenewalCommand command, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await business.Handle(new RequireBusinessAccessQuery(command.BusinessId, actor.UserId, true), cancellationToken);
+            var s = (await subscriptions.FindByBusinessIdAsync(command.BusinessId, cancellationToken)).SingleOrDefault() ?? throw new DomainException("not_found");
+            Guard.Require(s.IsEntitled(clock.GetUtcNow()), "transition");
+            var current = await provider.Get(s.ProviderSubscriptionId, cancellationToken);
+            if (current.Status == "SUSPENDED") await provider.Activate(s.ProviderSubscriptionId, cancellationToken);
+            else Guard.Require(current.Status == "ACTIVE", "transition");
+            if (s.CancelAtPeriodEnd) s.ResumeRenewal(clock.GetUtcNow());
+            await work.CompleteAsync(cancellationToken);
+            return new Result<SubscriptionSnapshot, EResumeSubscriptionRenewalError>.Success(ToSubscriptionSnapshot(clock.GetUtcNow(), s));
+        }
+        catch (DomainException error)
+        {
+            return new Result<SubscriptionSnapshot, EResumeSubscriptionRenewalError>.Failure(error.Code switch
+            {
+                "forbidden" => EResumeSubscriptionRenewalError.Forbidden,
+                "not_found" => EResumeSubscriptionRenewalError.NotFound,
+                "transition" => EResumeSubscriptionRenewalError.InvalidTransition,
+                "provider_unavailable" => EResumeSubscriptionRenewalError.ProviderUnavailable,
+                _ => EResumeSubscriptionRenewalError.UnexpectedError
+            });
+        }
+    }
+
+    internal async Task<SubscriptionSnapshot> VerifyPlanChange(string businessId, string checkoutId, CancellationToken cancellationToken)
+    {
+            var intent = await intents.FindByIdAsync(checkoutId, cancellationToken) ?? throw new DomainException("not_found");
+            Guard.Require(intent.BusinessId == businessId, "forbidden");
+            var current = (await subscriptions.FindByBusinessIdAsync(businessId, cancellationToken)).SingleOrDefault() ?? throw new DomainException("not_found");
+            if (intent.Completed && current.PlanId == intent.PlanId)
+                return ToSubscriptionSnapshot(clock.GetUtcNow(), current);
+            Guard.Require(intent.ProviderSubscriptionId == current.ProviderSubscriptionId, "conflict");
+            var plan = await plans.FindByIdAsync(intent.PlanId, cancellationToken) ?? throw new DomainException("not_found");
+            var response = await provider.Get(current.ProviderSubscriptionId, cancellationToken);
+            Guard.Require(response.Id == current.ProviderSubscriptionId && response.Status == "ACTIVE" && response.PlanId == (configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId) && response.PaidUntil > clock.GetUtcNow(), "conflict");
+            var usage = await business.Handle(new GetBusinessSeatUsageQuery(businessId), cancellationToken);
+            Guard.Require(usage.ActiveEmployees + usage.ReservedSeats <= plan.MaxEmployees, "capacity");
+            current.ChangePlan(plan.Id);
+            intent.Complete(clock.GetUtcNow());
+            var seatRevisionResult = (await revisions.Handle(new TouchBusinessSeatsCommand(businessId), cancellationToken));
+            if (seatRevisionResult is Result<bool, ETouchBusinessSeatsError>.Failure seatRevisionFailure)
+                throw new DomainException(seatRevisionFailure.Error switch
+                {
+                    ETouchBusinessSeatsError.NotFound => "not_found",
+                    ETouchBusinessSeatsError.UnexpectedError => "unexpected",
+                    _ => "unexpected"
+                }, seatRevisionFailure.Field);
+            await work.CompleteAsync(cancellationToken);
+            return ToSubscriptionSnapshot(clock.GetUtcNow(), current);
+    }
+
+    internal async Task<SubscriptionSnapshot> VerifyPayment(string businessId, string checkoutId, string subscriptionId, CancellationToken cancellationToken)
+    {
+            var intent = await intents.FindByIdAsync(checkoutId, cancellationToken) ?? throw new DomainException("not_found");
+            Guard.Require(intent.BusinessId == businessId && intent.ProviderSubscriptionId == subscriptionId, "forbidden");
+            var previous = (await subscriptions.FindByBusinessIdAsync(businessId, cancellationToken)).SingleOrDefault();
+            if (intent.Completed && previous?.ProviderSubscriptionId == subscriptionId)
+                return ToSubscriptionSnapshot(clock.GetUtcNow(), previous);
+            var plan = await plans.FindByIdAsync(intent.PlanId, cancellationToken) ?? throw new DomainException("not_found");
+            await provider.ValidatePlan((configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId), plan.Price, plan.Currency, cancellationToken);
+            var result = await provider.Get(subscriptionId, cancellationToken);
+            Guard.Require(result.Id == subscriptionId && result.PlanId == (configuration[$"PayPal:Plans:{plan.Id}"] ?? plan.ProviderPlanId) && result.CustomId == intent.Id && result.Status == "ACTIVE" && result.HasConfirmedPayment && result.PaidUntil > clock.GetUtcNow(), "conflict");
+            var paid = await provider.Transactions(subscriptionId, clock.GetUtcNow().AddDays(-31), clock.GetUtcNow(), cancellationToken);
+            var confirmedPayment = paid.Where(p => p.Currency == plan.Currency && p.Amount == plan.Price).MaxBy(p => p.PaidAt);
+            Guard.Require(confirmedPayment is not null && result.PaidUntil <= confirmedPayment.PaidAt.AddMonths(1).AddDays(1), "conflict");
+            var usage = await business.Handle(new GetBusinessSeatUsageQuery(businessId), cancellationToken);
+            Guard.Require(usage.ActiveEmployees + usage.ReservedSeats <= plan.MaxEmployees, "capacity");
+            if (previous is not null && previous.ProviderSubscriptionId != subscriptionId)
+            {
+                Guard.Require(!previous.IsEntitled(clock.GetUtcNow()), "conflict");
+                var old = await provider.Get(previous.ProviderSubscriptionId, cancellationToken);
+                Guard.Require(old.Status is "CANCELLED" or "EXPIRED", "conflict");
+
+            }
+            var s = previous ?? new Subscription(businessId, plan.Id, subscriptionId);
+            if (s.ProviderSubscriptionId != subscriptionId)
+                s.ReplaceExpiredSubscription(plan.Id, subscriptionId, result.PaidUntil!.Value, clock.GetUtcNow());
+            else
+                s.Confirm(plan.Id, result.PaidUntil!.Value, clock.GetUtcNow());
+            if (previous is null)
+                await subscriptions.AddAsync(s, cancellationToken);
+            foreach (var payment in paid)
+                if ((await transactions.FindByProviderTransactionIdAsync(payment.Id, cancellationToken)).Count == 0)
+                    await transactions.AddAsync(new PaymentTransaction(businessId, payment.Id, payment.Amount, payment.Currency, payment.PaidAt), cancellationToken);
+            intent.Complete(clock.GetUtcNow());
+            var seatRevisionResult = (await revisions.Handle(new TouchBusinessSeatsCommand(businessId), cancellationToken));
+            if (seatRevisionResult is Result<bool, ETouchBusinessSeatsError>.Failure seatRevisionFailure)
+                throw new DomainException(seatRevisionFailure.Error switch
+                {
+                    ETouchBusinessSeatsError.NotFound => "not_found",
+                    ETouchBusinessSeatsError.UnexpectedError => "unexpected",
+                    _ => "unexpected"
+                }, seatRevisionFailure.Field);
+            await work.CompleteAsync(cancellationToken);
+            return ToSubscriptionSnapshot(clock.GetUtcNow(), s);
+    }
+
     private static bool IsDevelopmentSubscription(Subscription? subscription) => subscription?.ProviderSubscriptionId.StartsWith("synthetic-development-", StringComparison.Ordinal) == true;
 
-    private bool CanReplaceDevelopmentSubscription(Subscription? subscription) => IsDevelopmentSubscription(subscription) && environment.IsDevelopment() && configuration.GetValue<bool>("DevelopmentData:SeedOnStartup");
 
     private static SubscriptionSnapshot ToSubscriptionSnapshot(DateTimeOffset now, Subscription s) => new(s.Id, s.BusinessId, s.PlanId, s.Status == "active" && !s.IsEntitled(now) ? "expired" : s.Status, s.CurrentPeriodEnd, s.CancelAtPeriodEnd, s.Version, IsDevelopmentSubscription(s));
 }

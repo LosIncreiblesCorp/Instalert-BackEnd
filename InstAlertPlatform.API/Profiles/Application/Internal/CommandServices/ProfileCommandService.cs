@@ -1,5 +1,8 @@
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Profiles.Application.CommandServices;
+using InstAlertPlatform.API.Profiles.Application.Services.Snapshots;
+using InstAlertPlatform.API.Business.Domain.Model.Queries;
 using InstAlertPlatform.API.Profiles.Application.Errors;
-using InstAlertPlatform.API.Profiles.Application.Services;
 using InstAlertPlatform.API.Profiles.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Profiles.Domain.Model.Commands;
 using InstAlertPlatform.API.Profiles.Domain.Repositories;
@@ -8,7 +11,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Profiles.Application.Internal.CommandServices;
-public sealed class ProfileCommandService(IUserProfileRepository profiles, IUserPreferencesRepository preferences, IUnitOfWork work, ICurrentActor actor) : IProfileCommandService
+public sealed class ProfileCommandService(IUserProfileRepository profiles, IUserPreferencesRepository preferences, IUnitOfWork work, ICurrentActor actor, IBusinessProfileQueryService businesses) : IProfileCommandService
 {
     public async Task<Result<ProfileSnapshot, EUpdateUserProfileError>> Handle(UpdateUserProfileCommand command, CancellationToken cancellationToken = default)
     {
@@ -16,6 +19,9 @@ public sealed class ProfileCommandService(IUserProfileRepository profiles, IUser
         {
             var userId = command.UserId;
             Guard.Require(userId == actor.UserId, "forbidden");
+            if (actor.IsAdministrator)
+                Guard.Require((await businesses.Handle(new GetBusinessesQuery(), cancellationToken))
+                    .Any(business => business.OwnerUserId == userId), "forbidden");
             var profile = await profiles.FindByIdAsync(userId, cancellationToken);
             if (profile is null)
             {

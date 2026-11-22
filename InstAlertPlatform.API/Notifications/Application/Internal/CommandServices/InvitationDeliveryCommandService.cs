@@ -1,12 +1,12 @@
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Notifications.Application.CommandServices;
 using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Repositories;
 using System.Text.Json;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Shared.Application.Patterns;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
-using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Application.Errors;
 using InstAlertPlatform.API.Notifications.Domain.Model.Commands;
 
@@ -23,7 +23,7 @@ public sealed class InvitationDeliveryCommandService(IDeliveryRequestRepository 
                 return new Result<bool, EQueueInvitationDeliveryError>.Success(true);
             var id = "invitation:" + fact.InvitationId + ":" + fact.Sequence;
             if (await deliveries.FindByIdAsync(id, token)is null)
-                await deliveries.AddAsync(DeliveryRequest.Invitation(id, fact.InvitationId, fact.Email, fact.OwnerUserId), token);
+                await deliveries.AddAsync(DeliveryRequest.Invitation(id, fact.InvitationId, fact.Email, fact.OwnerUserId, fact.Sequence, fact.Credential), token);
             return new Result<bool, EQueueInvitationDeliveryError>.Success(true);
         }
         catch (DomainException error)

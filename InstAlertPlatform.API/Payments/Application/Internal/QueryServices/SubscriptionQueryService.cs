@@ -1,6 +1,7 @@
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Payments.Application.QueryServices;
+using InstAlertPlatform.API.Payments.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
-using InstAlertPlatform.API.Payments.Application.Services;
 using InstAlertPlatform.API.Payments.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Payments.Domain.Model.Queries;
 using InstAlertPlatform.API.Payments.Domain.Repositories;
@@ -9,16 +10,14 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Payments.Application.Internal.QueryServices;
-public sealed class SubscriptionQueryService(ISubscriptionRepository subscriptions, IPaymentTransactionRepository transactions, IBusinessProfileQueryService business, ICurrentActor actor, TimeProvider clock, IHostEnvironment environment, IConfiguration configuration) : ISubscriptionQueryService
+public sealed class SubscriptionQueryService(ISubscriptionRepository subscriptions, IPaymentTransactionRepository transactions, IBusinessProfileQueryService business, ICurrentActor actor, TimeProvider clock) : ISubscriptionQueryService
 {
     public async Task<SubscriptionSnapshot?> Handle(GetCurrentSubscriptionQuery query, CancellationToken cancellationToken = default)
     {
         var id = query.Id;
         await business.Handle(new RequireBusinessAccessQuery(id, actor.UserId, true), cancellationToken);
         var s = (await subscriptions.FindByBusinessIdAsync(id, cancellationToken)).SingleOrDefault();
-        if (s?.ProviderSubscriptionId.StartsWith("synthetic-development-", StringComparison.Ordinal) == true &&
-            ((!environment.IsDevelopment() && !configuration.GetValue<bool>("Demo:Enabled")) ||
-             !configuration.GetValue<bool>("DevelopmentData:SeedOnStartup")))
+        if (s?.ProviderSubscriptionId.StartsWith("synthetic-", StringComparison.Ordinal) == true)
             return null;
         return s is null ? null : ToSubscriptionSnapshot(clock.GetUtcNow(), s);
     }

@@ -1,4 +1,4 @@
-using InstAlertPlatform.API.Alert.Application.Services;
+using InstAlertPlatform.API.Alert.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Alert.Domain.Model.ValueObjects;
 using System.Security.Cryptography;
 using System.Text.Json;

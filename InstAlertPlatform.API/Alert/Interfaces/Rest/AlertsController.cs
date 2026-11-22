@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
+using InstAlertPlatform.API.Alert.Application.CommandServices;
+using InstAlertPlatform.API.Alert.Application.QueryServices;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.Commands;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
 using InstAlertPlatform.API.Alert.Interfaces.Rest.Resources;
@@ -9,6 +11,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InstAlertPlatform.API.Alert.Interfaces.Rest;
+[Authorize(Policy = "PersonalProfile")]
 [ApiController, Route("api/v1/[controller]"), Tags("Alert")]
 [ProducesResponseType(typeof(ProblemDetails), 400), ProducesResponseType(typeof(ProblemDetails), 401), ProducesResponseType(typeof(ProblemDetails), 403), ProducesResponseType(typeof(ProblemDetails), 404), ProducesResponseType(typeof(ProblemDetails), 409), ProducesResponseType(typeof(ProblemDetails), 503)]
 [ProducesResponseType(typeof(ProblemDetails), 500)]

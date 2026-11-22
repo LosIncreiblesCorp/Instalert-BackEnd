@@ -1,5 +1,7 @@
+using InstAlertPlatform.API.Alert.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Alert.Application.CommandServices;
+using InstAlertPlatform.API.Alert.Application.Services.Snapshots;
 using InstAlertPlatform.API.Alert.Application.Errors;
-using InstAlertPlatform.API.Alert.Application.Services;
 using InstAlertPlatform.API.Alert.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Alert.Domain.Model.Commands;
 using InstAlertPlatform.API.Alert.Domain.Model.Queries;
@@ -9,12 +11,13 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Alert.Application.Internal.CommandServices;
-public sealed class AlertPreferencesCommandService(IAlertPreferencesRepository preferences, ICurrentActor actor, IUnitOfWork work) : IAlertPreferencesCommandService
+public sealed class AlertPreferencesCommandService(IAlertPreferencesRepository preferences, ICurrentActor actor, IUnitOfWork work, IAlertAccess access) : IAlertPreferencesCommandService
 {
     public async Task<Result<AlertPreferencesSnapshot, EChangePanicGracePeriodError>> Handle(ChangePanicGracePeriodCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
+            await access.Require(cancellationToken);
             var userId = command.UserId;
             int? seconds = command.PanicGracePeriodSeconds;
             Guard.Require(userId == actor.UserId, "forbidden");

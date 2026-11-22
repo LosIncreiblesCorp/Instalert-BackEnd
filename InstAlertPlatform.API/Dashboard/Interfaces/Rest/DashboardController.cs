@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
+using InstAlertPlatform.API.Dashboard.Application.CommandServices;
+using InstAlertPlatform.API.Dashboard.Application.QueryServices;
 using InstAlertPlatform.API.Resources;
 using Microsoft.Extensions.Localization;
-using InstAlertPlatform.API.Dashboard.Application.Services;
 using InstAlertPlatform.API.Dashboard.Domain.Model.Commands;
 using InstAlertPlatform.API.Dashboard.Domain.Model.Queries;
 using InstAlertPlatform.API.Dashboard.Interfaces.Rest.Resources;
@@ -9,6 +11,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InstAlertPlatform.API.Dashboard.Interfaces.Rest;
+[Authorize(Policy = "PersonalProfile")]
 [ApiController, Route("api/v1/businesses/{businessId}"), Tags("Dashboard")]
 [ProducesResponseType(typeof(ProblemDetails), 400), ProducesResponseType(typeof(ProblemDetails), 401), ProducesResponseType(typeof(ProblemDetails), 403), ProducesResponseType(typeof(ProblemDetails), 404), ProducesResponseType(typeof(ProblemDetails), 409), ProducesResponseType(typeof(ProblemDetails), 503)]
 [ProducesResponseType(typeof(ProblemDetails), 500)]

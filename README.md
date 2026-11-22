@@ -48,10 +48,8 @@ The `EnforceSingleCommerceAssignments` migration adds these unique indexes and a
 | GET | `/api/v1/businesses/{id}/seats` | Read server-calculated capacity |
 | GET | `/api/v1/businesses/{id}/members` | Read staff |
 | GET/POST | `/api/v1/businesses/{id}/invitations` | Read or create invitations |
-| PUT | `/api/v1/business-members/{id}` | Edit employee name and email |
 | POST | `/api/v1/business-members/{id}/activation` | Activate with available capacity |
 | POST | `/api/v1/business-members/{id}/deactivation` | Deactivate while preserving the association |
-| PUT | `/api/v1/staff-invitations/{id}` | Edit a pending invitation |
 | POST | `/api/v1/staff-invitations/{id}/cancellation` | Cancel and release the reserved seat |
 | POST | `/api/v1/staff-invitations/{id}/resend` | Request delivery again |
 | GET/PUT | `/api/v1/profiles/{userId}` | Read or update the caller's personal data |
@@ -79,7 +77,7 @@ Commerce members may read history; only an alert's creator can modify its locati
 
 ## Payments API
 
-All business subscription routes require `User-Id` in Development; use `synthetic-admin` for the seeded business. The server checks business ownership and validates the selected plan against the configured PayPal plan before returning checkout data.
+Business subscription routes require an administrator bearer token, a personal password and ownership of the commerce. Checkout also requires a complete personal profile. Public registration creates administrators; it does not activate a subscription.
 
 | Method | Route | Purpose |
 |---|---|---|
@@ -93,7 +91,13 @@ All business subscription routes require `User-Id` in Development; use `syntheti
 | POST | `/api/v1/businesses/{businessId}/subscription/plan-change/verification` | Verify the PayPal plan change; body: `{"checkoutId":"…"}` |
 | POST | `/api/v1/payments/paypal/webhook` | Verify and reconcile supported PayPal webhook events |
 
-Configure PayPal outside source control with `PayPal__ClientId`, `PayPal__ClientSecret`, and `PayPal__WebhookId`. `PayPal__ApiBaseUrl` can override the API host; Development defaults to PayPal Sandbox and other environments default to PayPal Live. The webhook endpoint requires the real webhook ID from the corresponding PayPal environment; it returns `503` when that ID is not configured. Do not send `User-Id` as webhook authentication: PayPal transmission headers and server-side signature verification are required. Checkout creation does not itself create a PayPal subscription or charge a payment; the buyer approval and subsequent server verification are separate steps.
+Configure `PayPal__ClientId` and `PayPal__ClientSecret` outside source control. The API always uses PayPal Sandbox, including Production. Optional `PayPal__Plans__essential`, `PayPal__Plans__professional` and `PayPal__Plans__business` override the catalog's provider plan IDs; each must be an active monthly USD plan with the matching price.
+
+Checkout creates a provider subscription awaiting buyer approval and stores its ID. It never grants access on its own. The server verifies the provider plan, correlation, completed payment, paid period and seat capacity before activation. The browser receives only public checkout data.
+
+Apply the `LinkSubscriptionCheckout` migration before running this version. Enable periodic synchronization with `Payments__Reconciliation__Enabled=true`; `Payments__Reconciliation__IntervalSeconds` defaults to 300 (30–3600). This worker checks pending approvals and known subscriptions using a separate scope per item. It does not depend on a webhook. The optional webhook additionally requires `PayPal__WebhookId` from the same Sandbox application.
+
+Cancellation suspends future renewals and retains the paid period. `POST /api/v1/businesses/{businessId}/subscription/renewal` resumes a suspended agreement before that period expires. The worker finally cancels a scheduled agreement after expiry. Plan changes apply only after PayPal confirms the target plan and capacity is checked again; verifying a revision does not extend the paid period.
 
 ## Emergency contacts API
 
@@ -124,8 +128,59 @@ Inbox pages use newest creation time first and ID as a stable tie-breaker, with 
 
 `Workers__Enabled=true` enables processing of committed alert events into in-app notifications. The backend determines recipients, active membership, preferences and distance from saved commerce coordinates; the browser does not create these records. Receipt is retained after a panic is resolved or preferences change. Email delivery additionally requires the separate Brevo and Email configuration; disabling Email does not disable the in-app inbox.
 
-## Verification
+## Identity and access
+
+IAM uses BCrypt password hashes and signed JWT bearer tokens. Public registration creates administrator accounts only; it does not create a commerce, subscription or employee membership. Employee credentials are prepared through the internal IAM facade for the invitation workflow.
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| POST | `/api/v1/users` | Register an administrator with `email` and `password` |
+| POST | `/api/v1/tokens` | Sign in with `email` and `password` |
+| GET | `/api/v1/sessions/current` | Read the authenticated identity and onboarding status |
+| PUT | `/api/v1/users/me/password` | Change a password using `currentPassword` and `newPassword` |
+| DELETE | `/api/v1/tokens/current` | Revoke the account's existing access tokens |
+
+Registration and sign-in are anonymous and rate limited. The other IAM endpoints require `Authorization: Bearer <accessToken>`; a demonstration `User-Id` header does not grant access to them. Password changes return a replacement token and invalidate previously issued tokens. Passwords require at least ten characters, a letter and a digit, and cannot exceed 72 UTF-8 bytes.
+
+Configure these environment variables before starting the API:
+
+```text
+TokenSettings__Secret
+TokenSettings__Issuer
+TokenSettings__Audience
+TokenSettings__AccessTokenMinutes
+```
+
+The signing key must contain at least 32 bytes. Access token duration defaults to 10080 minutes (7 days) and accepts 5 through 10080 minutes. Keep the signing key outside source control. Apply the `AddIamUsers` migration explicitly to the intended database; the migration adds only the `users` table and its unique email index.
+
+Temporary employee credentials expire after 24 hours. IAM stores their hash and protects the temporary delivery payload with ASP.NET Core Data Protection. Existing personal passwords are never recovered or included in invitation messages. Set `DataProtection__KeysPath` to a writable persistent key directory and protect that directory before enabling delivery across restarts or multiple instances.
+
+This feature introduces IAM without changing the existing demonstration flows in other modules. Connecting invitation delivery, enforcing onboarding on every module, and retiring demonstration identities are separate integration steps. The session's `hasApplicationAccess` value describes readiness; the remaining modules do not yet enforce it through IAM authorization policies.
+
+## Build verification
 
 ```powershell
 dotnet build instalert-platform.sln
 ```
+
+## Employee invitations and access
+
+Invitation and membership operations use bearer sessions. The administrator invites employees only into their own commerce and with a current subscription and an available seat. A pending invitation reserves one seat. IAM provisions an employee account or rotates its temporary credential; personal passwords are never replaced by an invitation resend. Pending invitations reserve the email across commerces, and inactive memberships retain their original association.
+
+Employees change their temporary password, complete their personal profile, then accept an invitation addressed to their verified account email. `GET /api/v1/staff-invitations/me` lists only those pending invitations and includes the commerce name. Acceptance checks identity, profile, subscription and capacity again.
+
+The administrator can deactivate or reactivate a membership, but cannot edit an incorporated employee's name, email or password. Correct a pending invitation's email by cancelling it and creating another invitation. Deactivation releases a seat without moving or deleting the employee's account; reactivation requires a valid subscription and capacity.
+
+## Invitation credential delivery
+
+Apply `ProtectInvitationDelivery` before running this version. Invitations carry a protected temporary credential through the outbox and email queue. Notifications checks the invitation email, pending state, delivery sequence, credential expiry and IAM security stamp immediately before sending. Cancelled or superseded deliveries are skipped. Credentials are cleared from completed delivery records. Personal passwords are never sent.
+
+Configure `Application__PublicUrl` with the frontend's public URL, `Workers__Enabled=true`, `Email__Enabled=true`, `Brevo__ApiKey` and `Email__FromAddress` outside source control. `Email__FromName` is optional. Retain a persistent writable `DataProtection__KeysPath` across restarts so queued credentials can be opened by the delivery worker. Temporary passwords expire 24 hours after issuance; the invitation and reserved seat remain pending until accepted or cancelled. Resending rotates a provisional credential and does not reserve another seat.
+
+## Project layout
+
+Each bounded context keeps command and query service contracts in `Application/CommandServices` and `Application/QueryServices`, and implementations in `Application/Internal`. Read models are grouped under `Application/Services/Snapshots`; provider contracts and their message types are under `Application/Internal/OutboundServices`.
+
+Published event contracts belong to the producing context's `Domain/Model/Events`. Consumers handle them under `Application/Internal/EventHandlers`. Integration messages retain the `alert.changed.v1` and `business.invitation.requested.v1` identifiers and their existing JSON fields. The shared outbox persists and dispatches these messages from `Shared/Infrastructure/Persistence/EntityFrameworkCore/Outbox`.
+
+ACL interfaces live under `Interfaces/Acl`, with their implementations under `Application/Acl`. Provider adapters remain in Infrastructure: PayPal and Brevo services have dedicated directories, and hosted workers are grouped under `Infrastructure/BackgroundServices`. The shared `AppDbContext` continues to compose each context's ORM configuration.

@@ -1,6 +1,8 @@
+using InstAlertPlatform.API.Dashboard.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Dashboard.Application.QueryServices;
+using InstAlertPlatform.API.Dashboard.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
-using InstAlertPlatform.API.Dashboard.Application.Services;
 using InstAlertPlatform.API.Dashboard.Domain.Model.ValueObjects;
 using InstAlertPlatform.API.Dashboard.Application.Internal.QueryServices;
 using InstAlertPlatform.API.Dashboard.Domain.Model.Aggregates;
@@ -12,12 +14,13 @@ using InstAlertPlatform.API.Shared.Domain.Repositories;
 using System.Text.Json;
 
 namespace InstAlertPlatform.API.Dashboard.Application.Internal.QueryServices;
-public sealed class DashboardQueryService(IBusinessProfileQueryService business, IReportRepository reports, ICurrentActor actor, TimeProvider clock, DashboardProjectionBuilder projectionBuilder) : IDashboardQueryService
+public sealed class DashboardQueryService(IBusinessProfileQueryService business, IReportRepository reports, ICurrentActor actor, TimeProvider clock, DashboardProjectionBuilder projectionBuilder, IDashboardAccess access) : IDashboardQueryService
 {
     public async Task<DashboardSnapshot> Handle(GetCurrentDashboardQuery query, CancellationToken cancellationToken = default)
     {
         var businessId = query.BusinessId;
         var radius = query.RadiusMeters;
+        await access.Require(businessId, false, cancellationToken);
         var b = await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, false), cancellationToken);
         var admin = b.OwnerUserId == actor.UserId;
         return await projectionBuilder.Compose(b, admin ? "administrator" : "employee", actor.UserId, ReportingPeriod.CurrentMonth(clock.GetUtcNow()), clock.GetUtcNow(), radius, false, cancellationToken);
@@ -26,6 +29,7 @@ public sealed class DashboardQueryService(IBusinessProfileQueryService business,
     public async Task<List<ReportSnapshot>> Handle(GetReportsQuery query, CancellationToken cancellationToken = default)
     {
         var businessId = query.BusinessId;
+        await access.Require(businessId, true, cancellationToken);
         await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, true), cancellationToken);
         return (await reports.FindByBusinessIdAsync(businessId, cancellationToken)).OrderByDescending(r => r.GeneratedAt).ThenByDescending(r => r.Id).Select(ToReportSnapshot).ToList();
     }
@@ -33,6 +37,7 @@ public sealed class DashboardQueryService(IBusinessProfileQueryService business,
     public async Task<ReportSnapshot> Handle(GetReportByIdQuery query, CancellationToken cancellationToken = default)
     {
         var businessId = query.BusinessId;
+        await access.Require(businessId, true, cancellationToken);
         await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, true), cancellationToken);
         var report = await reports.FindByIdAsync(query.Id, cancellationToken) ?? throw new DomainException("not_found");
         Guard.Require(report.BusinessId == businessId, "not_found");

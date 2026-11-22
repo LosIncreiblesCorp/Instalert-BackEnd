@@ -1,7 +1,9 @@
+using InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices;
+using InstAlertPlatform.API.Business.Application.QueryServices;
+using InstAlertPlatform.API.Notifications.Application.CommandServices;
+using InstAlertPlatform.API.Notifications.Application.Services.Snapshots;
 using InstAlertPlatform.API.Business.Domain.Model.Queries;
-using InstAlertPlatform.API.Business.Application.Services;
 using InstAlertPlatform.API.Notifications.Application.Errors;
-using InstAlertPlatform.API.Notifications.Application.Services;
 using InstAlertPlatform.API.Notifications.Domain.Model.Aggregates;
 using InstAlertPlatform.API.Notifications.Domain.Model.Commands;
 using InstAlertPlatform.API.Notifications.Domain.Model.Queries;
@@ -11,12 +13,13 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Notifications.Application.Internal.CommandServices;
-public sealed class NotificationCommandService(IReceivedNotificationRepository notifications, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work, TimeProvider clock) : INotificationCommandService
+public sealed class NotificationCommandService(IReceivedNotificationRepository notifications, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, INotificationsAccess access) : INotificationCommandService
 {
     public async Task<Result<NotificationSnapshot, EReadNotificationError>> Handle(ReadNotificationCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
+            await access.Require(cancellationToken);
             var id = command.Id;
             var userId = actor.UserId;
             var n = await notifications.FindByIdAsync(id, cancellationToken);

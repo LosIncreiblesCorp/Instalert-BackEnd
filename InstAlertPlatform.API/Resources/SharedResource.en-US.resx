@@ -582,4 +582,34 @@
   <data name="Field_startDate" xml:space="preserve"><value>Inclusive start date in America/Lima (YYYY-MM-DD).</value></data>
   <data name="Field_endDate" xml:space="preserve"><value>Inclusive end date in America/Lima; must not be in the future.</value></data>
   <data name="Field_cutoffAt" xml:space="preserve"><value>Authoritative UTC cutoff of the saved snapshot, excluding this instant.</value></data>
+<data name="IdentityEmailInvalid" xml:space="preserve"><value>Enter a valid email address.</value></data>
+
+<data name="IdentityPasswordInvalid" xml:space="preserve"><value>Enter a password with 10 to 72 characters.</value></data>
+
+<data name="Identity_Register_Summary" xml:space="preserve"><value>Register an administrator</value></data>
+
+<data name="Identity_Register_Description" xml:space="preserve"><value>Creates an administrator account and an authenticated session. Employee accounts originate from staff invitations.</value></data>
+
+<data name="Identity_ChangePassword_Summary" xml:space="preserve"><value>Change account password</value></data>
+
+<data name="Identity_ChangePassword_Description" xml:space="preserve"><value>Verifies the current password, updates its hash and revokes previous tokens.</value></data>
+
+<data name="Identity_SignIn_Summary" xml:space="preserve"><value>Sign in</value></data>
+
+<data name="Identity_SignIn_Description" xml:space="preserve"><value>Validates credentials and issues a signed access token.</value></data>
+
+<data name="Identity_SignOut_Summary" xml:space="preserve"><value>Revoke the current account sessions</value></data>
+
+<data name="Identity_SignOut_Description" xml:space="preserve"><value>Invalidates tokens issued before this request.</value></data>
+
+<data name="Identity_Current_Summary" xml:space="preserve"><value>Get the current session</value></data>
+
+<data name="Identity_Current_Description" xml:space="preserve"><value>Returns the authenticated account identity and password-change requirement.</value></data>
+
+<data name="Response429" xml:space="preserve"><value>Too many attempts</value></data>
+
+<data name="ErrorDetail429" xml:space="preserve"><value>Wait a minute before trying again.</value></data>
+
+  <data name="Subscriptions_Resume_Summary" xml:space="preserve"><value>Resume subscription renewal</value></data>
+  <data name="Subscriptions_Resume_Description" xml:space="preserve"><value>Reactivates future renewals while the paid period is still valid.</value></data>
 </root>
