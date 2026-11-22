@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Dashboard.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Dashboard.Application.CommandServices;
 using InstAlertPlatform.API.Dashboard.Application.Services.Snapshots;
@@ -15,12 +16,13 @@ using InstAlertPlatform.API.Shared.Domain.Repositories;
 using System.Text.Json;
 
 namespace InstAlertPlatform.API.Dashboard.Application.Internal.CommandServices;
-public sealed class ReportCommandService(IBusinessProfileQueryService business, IReportRepository reports, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, JsonSerializerOptions snapshotJsonOptions, DashboardProjectionBuilder projectionBuilder) : IReportCommandService
+public sealed class ReportCommandService(IBusinessProfileQueryService business, IReportRepository reports, ICurrentActor actor, IUnitOfWork work, TimeProvider clock, JsonSerializerOptions snapshotJsonOptions, DashboardProjectionBuilder projectionBuilder, IDashboardAccess access) : IReportCommandService
 {
     public async Task<Result<ReportSnapshot, EGenerateReportError>> Handle(GenerateReportCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
+            await access.Require(command.BusinessId, true, cancellationToken);
             var b = await business.Handle(new RequireBusinessAccessQuery(command.BusinessId, actor.UserId, true), cancellationToken);
             var now = DateTimeOffset.FromUnixTimeMilliseconds(clock.GetUtcNow().ToUnixTimeMilliseconds());
             var bounds = ReportingPeriod.Range(command.StartDate, command.EndDate, now);
