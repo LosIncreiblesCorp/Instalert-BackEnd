@@ -11,9 +11,16 @@ using Microsoft.AspNetCore.DataProtection;
 using InstAlertPlatform.API.Iam.Interfaces.Acl;
 namespace InstAlertPlatform.API.Iam.Application.Acl;
 public sealed class IamContextFacade(IUserRepository users, IHashingService hashing, IDataProtectionProvider protection,
-    IProfileQueryService profiles, TimeProvider clock) : IIamContextFacade
+    IProfileQueryService profiles, TimeProvider clock, InstAlertPlatform.API.Profiles.Interfaces.Acl.IProfilesContextFacade profileFacts) : IIamContextFacade
 {
     private readonly IDataProtector protector = protection.CreateProtector("InstAlert.InvitationCredential.v1");
+    public async Task<bool> HasCompletedAccount(string userId, CancellationToken token)
+    {
+        var user = await users.FindByIdAsync(userId, token);
+        return user is not null && user.HasValidCredentials(clock.GetUtcNow()) && !user.MustChangePassword
+            && await profileFacts.IsComplete(userId, token);
+    }
+
     public async Task<string?> FindUserIdByEmail(string email, CancellationToken token) => (await users.FindByEmailAsync(Guard.Email(email).ToLowerInvariant(), token))?.Id;
 
     public async Task<string?> PrepareInvitationCredential(string email, CancellationToken token)

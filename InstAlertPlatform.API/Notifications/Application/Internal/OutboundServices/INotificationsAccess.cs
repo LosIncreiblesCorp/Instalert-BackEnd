@@ -2,4 +2,5 @@ namespace InstAlertPlatform.API.Notifications.Application.Internal.OutboundServi
 public interface INotificationsAccess
 {
     Task Require(CancellationToken token);
+    Task<bool> CanReceive(string userId, string businessId, CancellationToken token);
 }
