@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Notifications.Application.CommandServices;
 using InstAlertPlatform.API.Notifications.Application.Services.Snapshots;
@@ -12,12 +13,13 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Notifications.Application.Internal.CommandServices;
-public sealed class NotificationPreferencesCommandService(INotificationPreferencesRepository preferences, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work) : INotificationPreferencesCommandService
+public sealed class NotificationPreferencesCommandService(INotificationPreferencesRepository preferences, IBusinessProfileQueryService business, ICurrentActor actor, IUnitOfWork work, INotificationsAccess access) : INotificationPreferencesCommandService
 {
     public async Task<Result<PreferencesSnapshot, EChangeNotificationPreferencesError>> Handle(ChangeNotificationPreferencesCommand command, CancellationToken cancellationToken = default)
     {
         try
         {
+            await access.Require(cancellationToken);
             var userId = command.UserId;
             var businessId = command.BusinessId;
             Guard.Require(userId == actor.UserId, "forbidden");
