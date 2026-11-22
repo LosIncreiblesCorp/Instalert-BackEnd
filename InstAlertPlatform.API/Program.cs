@@ -74,6 +74,7 @@ builder.Services.AddScoped<InstAlertPlatform.API.Profiles.Interfaces.Acl.IProfil
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Internal.OutboundServices.IAlertAccess, InstAlertPlatform.API.Alert.Infrastructure.Acl.AlertAccess>();
 builder.Services.AddScoped<InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices.INotificationsAccess, InstAlertPlatform.API.Notifications.Infrastructure.Acl.NotificationsAccess>();
 builder.Services.AddScoped<InstAlertPlatform.API.Mapping.Application.Internal.OutboundServices.IMappingAccess, InstAlertPlatform.API.Mapping.Infrastructure.Acl.MappingAccess>();
+builder.Services.AddScoped<InstAlertPlatform.API.Dashboard.Application.Internal.OutboundServices.IDashboardAccess, InstAlertPlatform.API.Dashboard.Infrastructure.Acl.DashboardAccess>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web)
 {
