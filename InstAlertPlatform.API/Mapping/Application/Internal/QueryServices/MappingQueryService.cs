@@ -13,7 +13,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Mapping.Application.Internal.QueryServices;
-public sealed class MappingQueryService(IIncidentProjectionRepository incidents, IBusinessProfileQueryService business, ICurrentActor actor, IAlertQueryService alerts, TimeProvider clock) : IMappingQueryService
+public sealed class MappingQueryService(IIncidentProjectionRepository incidents, IBusinessProfileQueryService business, ICurrentActor actor, IAlertQueryService alerts, TimeProvider clock, InstAlertPlatform.API.Mapping.Application.Internal.OutboundServices.IMappingAccess access) : IMappingQueryService
 {
     public async Task<List<IncidentSnapshot>> Handle(FindMappedIncidentsQuery query, CancellationToken cancellationToken = default)
     {
@@ -21,6 +21,7 @@ public sealed class MappingQueryService(IIncidentProjectionRepository incidents,
         var radius = query.RadiusMeters;
         var category = query.Category;
         var since = query.Since;
+        await access.Require(businessId, cancellationToken);
         var center = await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, false), cancellationToken);
         Guard.Require(double.IsFinite(radius) && radius > 0 && radius <= 50000, "validation", "radiusMeters");
         var data = await Read(cancellationToken);
@@ -39,6 +40,7 @@ public sealed class MappingQueryService(IIncidentProjectionRepository incidents,
     {
         var businessId = query.BusinessId;
         var radius = query.RadiusMeters;
+        await access.Require(businessId, cancellationToken);
         var center = await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, false), cancellationToken);
         Guard.Require(double.IsFinite(radius) && radius > 0 && radius <= 50000, "validation", "radiusMeters");
         return (await business.Handle(new GetBusinessLocationsQuery(), cancellationToken)).Where(b => Geography.DistanceMeters(center.Latitude, center.Longitude, b.Latitude, b.Longitude) <= radius).Select(b => new BusinessLocationSnapshot(b.Id, b.Name, b.Address, b.Latitude, b.Longitude)).ToList();

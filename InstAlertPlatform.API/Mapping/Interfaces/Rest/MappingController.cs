@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using InstAlertPlatform.API.Mapping.Application.QueryServices;
 using InstAlertPlatform.API.Mapping.Domain.Model.Queries;
 using InstAlertPlatform.API.Mapping.Interfaces.Rest.Resources;
@@ -6,6 +7,7 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InstAlertPlatform.API.Mapping.Interfaces.Rest;
+[Authorize(Policy = "PersonalProfile")]
 [ApiController, Route("api/v1/[controller]"), Tags("Mapping")]
 [ProducesResponseType(typeof(ProblemDetails), 400), ProducesResponseType(typeof(ProblemDetails), 401), ProducesResponseType(typeof(ProblemDetails), 403), ProducesResponseType(typeof(ProblemDetails), 404), ProducesResponseType(typeof(ProblemDetails), 409), ProducesResponseType(typeof(ProblemDetails), 503)]
 [ProducesResponseType(typeof(ProblemDetails), 500)]
