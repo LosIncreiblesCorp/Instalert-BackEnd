@@ -72,6 +72,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<InstAlertPlatform.API.Contacts.Application.Internal.OutboundServices.IContactsAccess, InstAlertPlatform.API.Contacts.Infrastructure.Acl.ContactsAccess>();
 builder.Services.AddScoped<InstAlertPlatform.API.Profiles.Interfaces.Acl.IProfilesContextFacade, InstAlertPlatform.API.Profiles.Application.Acl.ProfilesContextFacade>();
 builder.Services.AddScoped<InstAlertPlatform.API.Alert.Application.Internal.OutboundServices.IAlertAccess, InstAlertPlatform.API.Alert.Infrastructure.Acl.AlertAccess>();
+builder.Services.AddScoped<InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices.INotificationsAccess, InstAlertPlatform.API.Notifications.Infrastructure.Acl.NotificationsAccess>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(new JsonSerializerOptions(JsonSerializerDefaults.Web)
 {

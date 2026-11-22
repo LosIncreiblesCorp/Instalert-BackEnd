@@ -1,3 +1,4 @@
+using InstAlertPlatform.API.Notifications.Application.Internal.OutboundServices;
 using InstAlertPlatform.API.Business.Application.QueryServices;
 using InstAlertPlatform.API.Notifications.Application.QueryServices;
 using InstAlertPlatform.API.Notifications.Application.Services.Snapshots;
@@ -10,10 +11,11 @@ using InstAlertPlatform.API.Shared.Domain.Model;
 using InstAlertPlatform.API.Shared.Domain.Repositories;
 
 namespace InstAlertPlatform.API.Notifications.Application.Internal.QueryServices;
-public sealed class NotificationQueryService(IReceivedNotificationRepository notifications, IDeliveryRequestRepository deliveries, IBusinessProfileQueryService business, ICurrentActor actor) : INotificationQueryService
+public sealed class NotificationQueryService(IReceivedNotificationRepository notifications, IDeliveryRequestRepository deliveries, IBusinessProfileQueryService business, ICurrentActor actor, INotificationsAccess access) : INotificationQueryService
 {
     public async Task<List<NotificationSnapshot>> Handle(GetReceivedNotificationsQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var businessId = query.BusinessId;
         var page = query.Page;
         var pageSize = query.PageSize;
@@ -24,12 +26,14 @@ public sealed class NotificationQueryService(IReceivedNotificationRepository not
 
     public async Task<List<DeliveryStatusSnapshot>> Handle(GetDeliveryStatusesQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var user = actor.UserId;
         return (await deliveries.FindByUserIdAsync(user, cancellationToken)).Select(d => new DeliveryStatusSnapshot(d.Id, d.SourceAlertId, d.SourceInvitationId, d.Channel, d.Status, d.Attempts, d.SentAt)).ToList();
     }
 
     public async Task<int> Handle(GetUnreadNotificationCountQuery query, CancellationToken cancellationToken = default)
     {
+        await access.Require(cancellationToken);
         var userId = query.UserId;
         var businessId = query.BusinessId;
         Guard.Require(userId == actor.UserId, "forbidden");
