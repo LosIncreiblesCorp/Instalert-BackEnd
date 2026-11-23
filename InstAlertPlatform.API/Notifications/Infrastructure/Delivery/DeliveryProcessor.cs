@@ -7,7 +7,7 @@ using InstAlertPlatform.API.Shared.Infrastructure.Persistence.EntityFrameworkCor
 using Microsoft.EntityFrameworkCore;
 
 namespace InstAlertPlatform.API.Notifications.Infrastructure.Delivery;
-public sealed class DeliveryProcessor(AppDbContext db, IDeliveryGateway gateway, IBusinessProfileQueryService business, TimeProvider clock, ILogger<DeliveryProcessor> logger, IIamContextFacade identity, IConfiguration configuration, InstAlertPlatform.API.Profiles.Interfaces.Acl.IProfilesContextFacade profiles)
+public sealed class DeliveryProcessor(AppDbContext db, IDeliveryGateway gateway, IBusinessProfileQueryService business, TimeProvider clock, ILogger<DeliveryProcessor> logger, IIamContextFacade identity, InstAlertPlatform.API.Profiles.Interfaces.Acl.IProfilesContextFacade profiles)
 {
     public async Task Process(CancellationToken token)
     {
@@ -46,10 +46,7 @@ public sealed class DeliveryProcessor(AppDbContext db, IDeliveryGateway gateway,
                         password = await identity.ReadInvitationCredential(d.InvitationCredential, d.Destination, token);
                         if (password is null) { d.Cancel(); await db.SaveChangesAsync(token); continue; }
                     }
-                    var publicUrl = configuration["Application:PublicUrl"]?.TrimEnd('/');
-                    if (!Uri.TryCreate(publicUrl, UriKind.Absolute, out var address) || address.Scheme is not ("http" or "https"))
-                        throw new InvalidOperationException("Configure the public application URL before delivering invitations.");
-                    invitationText = "You have been invited to InstAlert. Sign in at " + publicUrl + "/sign-in\nEmail: " + d.Destination +
+                    invitationText = "You have been invited to InstAlert." +
                         (password is null ? "\nUse your personal password to review the invitation." :
                         "\nTemporary password: " + password + "\nThis password expires 24 hours after it was issued. Change it before completing your profile and accepting the invitation.");
                 }
