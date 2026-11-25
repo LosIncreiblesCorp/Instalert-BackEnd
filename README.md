@@ -1,22 +1,160 @@
-# InstAlert Web Services
+# InstAlert Backend
 
-ASP.NET Core REST API using C#, EF Core and MySQL. The backend uses explicit command/query services, operation error enums, repositories, unit of work, REST resources and assemblers. Shared provides technical support. Business owns commerce profiles, employee memberships and invitations; personal data belongs to Profiles; subscriptions and billing records belong to Payments. This branch adds PayPal subscription checkout, server-side verification, plan changes, cancellation, billing history and webhook reconciliation.
+InstAlert is an incident management application for business administrators and operational employees. This repository contains its REST API, built with C#, ASP.NET Core 10, Entity Framework Core and MySQL. The frontend is maintained in a separate repository.
 
-## Run locally
+## Requirements
 
-Use the .NET 10 SDK, MySQL Server and the EF Core CLI. The API references EF Core 10.0.13; use the matching CLI version for migration tooling. The current local configuration targets `instalert_platform`. The server must be running and the configured database user must have the required database/schema permissions. Each team member must configure a connection for their own MySQL instance. Environment variables such as `ConnectionStrings__DefaultConnection` can override the file configuration.
+- .NET 10 SDK.
+- MySQL with a running server and a database user allowed to create and update the application schema.
+- EF Core CLI version 10.0.13.
+- For the complete user journey: a PayPal Sandbox application and buyer account, and a Brevo transactional email account with a verified sender.
+
+Run all commands below from the repository root, where `instalert-platform.sln` is located. Examples use PowerShell. Replace placeholders before executing them; do not wrap the whole command block in quotes.
+
+```powershell
+dotnet --version
+dotnet tool install --global dotnet-ef --version 10.0.13
+```
+
+If the EF tool is already installed, use `dotnet tool update --global dotnet-ef --version 10.0.13` instead.
+
+## 1. Configure the local API
+
+ASP.NET loads `appsettings.json`, then the environment-specific file, then environment variables. Environment variables override file values; a double underscore represents a nested JSON property. The HTTP launch profile selects Development.
+
+Set these values in the same terminal that will run migrations and start the API:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "Server=localhost;Port=3306;Database=instalert_platform;User ID=<MYSQL_USER>;Password=<MYSQL_PASSWORD>;"
+$env:TokenSettings__Secret = "<PRIVATE_RANDOM_KEY_OF_AT_LEAST_32_BYTES>"
+$env:TokenSettings__Issuer = "InstAlert"
+$env:TokenSettings__Audience = "InstAlert.Web"
+$env:TokenSettings__AccessTokenMinutes = "10080"
+$env:Demo__Enabled = "false"
+$env:DevelopmentActors__Enabled = "false"
+$env:DevelopmentData__SeedOnStartup = "false"
+$env:Database__ApplyMigrationsOnStartup = "false"
+$env:Documentation__Enabled = "true"
+$env:Workers__Enabled = "false"
+$env:Email__Enabled = "false"
+$env:Payments__Reconciliation__Enabled = "false"
+```
+
+Generate your own signing key, for example with PowerShell, and use the resulting value as `TokenSettings__Secret`:
+
+```powershell
+$keyBytes = New-Object byte[] 64
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($keyBytes)
+[Convert]::ToBase64String($keyBytes)
+$rng.Dispose()
+```
+
+Keep the key private and stable across restarts. Tokens last seven days and can also be revoked by the application. Issuer and audience identify the API and its client; they are not URLs or passwords.
+
+The initial configuration disables email and background processing so you can prepare the database without dispatching queued messages. These terminal variables are temporary. You can also configure the existing Development settings privately; do not commit credentials.
+
+## 2. Prepare the database and start
+
+Make sure MySQL is running and the configured user can create the database, or create an empty `instalert_platform` database first. Then run:
 
 ```powershell
 dotnet restore instalert-platform.sln
-dotnet ef database update --project InstAlertPlatform.API
+dotnet ef database update --project InstAlertPlatform.API -- --environment Development
 dotnet run --project InstAlertPlatform.API --launch-profile http
 ```
 
-Configuration uses the standard ASP.NET files: `appsettings.json`, `appsettings.Development.json` and `appsettings.Production.json`. Configure the local MySQL connection and provider values in the existing Development settings. Environment variables and command-line arguments can override them. Production uses the `%DATABASE_URL%`, `%DATABASE_USER%`, `%DATABASE_PASSWORD%` and `%DATABASE_SCHEMA%` connection template, or `ConnectionStrings__DefaultConnection`.
+Use the existing migrations; do not generate a new migration just to run the project. When upgrading a database containing data, review pending migrations and back it up first. Automatic startup migration is disabled by the overrides above.
 
-The HTTP launch profile uses port 5221. Vite uses port 5173; Development CORS allows localhost and 127.0.0.1 on that port and the existing 5192/5193 ports. Set `Cors__AllowedOrigins__0` to the exact published frontend origin for a demonstration deployment. There is no default public deployment URL. Database migrations remain explicit outside Development; review `Database:ApplyMigrationsOnStartup`, workers and mail flags before running locally.
+| Address | Purpose |
+| --- | --- |
+| `http://localhost:5221` | API host |
+| `http://localhost:5221/scalar/` | Interactive API documentation |
+| `http://localhost:5221/openapi/v1.json` | OpenAPI specification |
+| `http://localhost:5221/health/live` | Process health |
+| `http://localhost:5221/health/ready` | Database connectivity and pending migration check |
 
-OpenAPI: `http://localhost:5221/openapi/v1.json`. Scalar: `http://localhost:5221/scalar/v1`. English (`en-US`) is the default; `Accept-Language: es-419` selects Latin American Spanish for messages and operation documentation.
+A ready API returns 200 from `/health/ready`. This does not verify PayPal or Brevo credentials. Stop the API with Ctrl+C before changing its terminal configuration, then start it again.
+
+## 3. Enable the complete application flow
+
+### PayPal Sandbox
+
+Set the following in the API terminal before starting it:
+
+```powershell
+$env:PayPal__ClientId = "<SANDBOX_CLIENT_ID>"
+$env:PayPal__ClientSecret = "<SANDBOX_CLIENT_SECRET>"
+$env:PayPal__Plans__essential = "<ESSENTIAL_SANDBOX_PLAN_ID>"
+$env:PayPal__Plans__professional = "<PROFESSIONAL_SANDBOX_PLAN_ID>"
+$env:PayPal__Plans__business = "<BUSINESS_SANDBOX_PLAN_ID>"
+$env:Payments__Reconciliation__Enabled = "true"
+$env:Payments__Reconciliation__IntervalSeconds = "300"
+```
+
+Use active monthly plans from the same Sandbox application: Essential USD 15 / 4 employee seats, Professional USD 30 / 8 seats, Business USD 45 / 15 seats. The database catalog includes provider IDs; override them when using your own application. Configure the same public Client ID in the frontend. Use a Sandbox personal buyer account to approve subscriptions; no real payment is required.
+
+The backend verifies approval and periodically reconciles subscriptions. A webhook is optional. To use it, register a reachable HTTPS URL ending in `/api/v1/payments/paypal/webhook` in that Sandbox application and set `PayPal__WebhookId` to its webhook registration ID. For local callbacks, a public tunnel must forward to this API. The webhook ID is not the hostname or Render service ID.
+
+### Brevo and background processing
+
+```powershell
+$env:Brevo__ApiKey = "<TRANSACTIONAL_API_KEY>"
+$env:Email__FromAddress = "<VERIFIED_SENDER_EMAIL>"
+$env:Email__FromName = "InstAlert"
+$env:Workers__Enabled = "true"
+$env:Email__Enabled = "true"
+```
+
+Workers process queued events and deliveries. In-app notifications require workers; email additionally requires Brevo and Email configuration. Enabling workers/email may process existing queued messages. Invitation emails contain a temporary password and setup instructions, without a sign-in link. The password expires after 24 hours; the employee must replace it before completing their profile and accepting the invitation.
+
+### Frontend and CORS
+
+Run the separate frontend at `http://localhost:5173` with `VITE_INSTALERT_PLATFORM_API_URL=http://localhost:5221/api/v1`. Development already allows that origin. For another frontend address, configure its exact origin, for example:
+
+```powershell
+$env:Cors__AllowedOrigins__0 = "http://localhost:5173"
+```
+
+An origin contains scheme, hostname and port, without a route such as `/api/v1`. Restart the API after changing configuration.
+
+## 4. Try the user journey
+
+1. Register an administrator through the frontend or `POST /api/v1/users` with `email` and `password`. Passwords need at least ten characters, a letter and a digit, and must fit within 72 UTF-8 bytes.
+2. Sign in using `POST /api/v1/tokens`. For protected API calls, use `Authorization: Bearer <accessToken>`; in Scalar, enter the token in its Bearer authentication control.
+3. Register the administrator's single business and complete their personal profile.
+4. Select a plan, approve it with a Sandbox buyer and wait for server verification. Registration alone does not unlock operational screens.
+5. Invite an employee with a reachable email. The invitation reserves a seat. The employee signs in with the temporary password, changes it, completes their profile and accepts the invitation.
+6. Use alerts, mapping, notifications and dashboards. Employees manage their own emergency contacts.
+
+There are no seeded login accounts to use for this flow. `GET /api/v1/sessions/current` reports the next onboarding step and current access. A user returning midway resumes the incomplete step. Each administrator owns one business and each employee remains associated with one business, even if deactivated.
+
+## Production configuration
+
+The Dockerfile builds the API and listens on `0.0.0.0:$PORT`, defaulting to port 10000. Build from the repository root with `docker build -t instalert-api .`. The image does not include Development settings. Docker hosts the API; MySQL must be provided separately.
+
+For Render with Aiven, set `ASPNETCORE_ENVIRONMENT=Production`, the complete `ConnectionStrings__DefaultConnection` including Aiven's assigned port and TLS settings, and the JWT/provider variables above in the hosting environment. If the connection references a CA certificate, provide it at a path readable inside the container. Do not use a local Windows certificate path in Render.
+
+Keep Demo, DevelopmentActors and DevelopmentData seeding disabled. Apply migrations explicitly before starting the new version; Docker build does not apply them. Set the health check to `/health/ready` and CORS to the exact published frontend origin. The Production defaults allow `https://instalert-c3f7f.web.app` and `https://instalert-c3f7f.firebaseapp.com`. Keep PayPal in Sandbox, even when ASP.NET runs in Production. Background processing pauses whenever the hosting instance is stopped or sleeping.
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| API fails at startup with token configuration errors | Supply a private signing key of at least 32 bytes, issuer and audience. |
+| Database connection fails | Check MySQL is running, connection host/port, credentials and TLS configuration. |
+| Readiness returns 503 | Check database access and apply pending migrations to that same database. |
+| Protected endpoint returns 401 | Sign in and use a current Bearer token. Password changes and revocation invalidate old tokens. |
+| Protected endpoint returns 403 | Check the user role, completed onboarding, membership and subscription. |
+| Browser reports a CORS error | Check the API is reachable and the exact frontend origin is allowed. |
+| Invitation email does not arrive | Check workers, Email, Brevo sender/key, delivery status and spam folder. |
+| Subscription remains pending | Check Sandbox credentials, plan ownership and server verification/reconciliation. |
+
+## Architecture and API reference
+
+Nine bounded contexts organize the application: Iam, Business, Profiles, Alert, Contacts, Notifications, Payments, Mapping and Dashboard. Shared contains technical infrastructure. Each context separates Domain, Application, Infrastructure and Interfaces. The shared AppDbContext composes each context's EF mappings; repositories and unit of work persist changes. Commands change state, queries read it, and REST resources/assemblers define the HTTP contracts. Provider adapters stay in Infrastructure; events and the outbox coordinate asynchronous processing.
+
+The following sections describe the principal API contracts. Scalar provides the generated operation and request schemas. English is the default; send `Accept-Language: es-419` for supported Spanish messages and operation documentation.
 
 ## Business profile API
 
@@ -29,11 +167,9 @@ OpenAPI: `http://localhost:5221/openapi/v1.json`. Scalar: `http://localhost:5221
 
 Registration requires an eleven-digit textual `taxId`, `name`, `address`, `latitude` and `longitude`. Name and address limits are 150 and 250 characters. Coordinates must be finite and within latitude/longitude bounds. The registered tax identifier is immutable. The database enforces its uniqueness. Business profile responses omit the internal concurrency stamp; EF Core retains it in persistence. Public IDs are serialized as strings; audit dates are assigned by the server and stored in UTC. Registration returns 201 and a Location header; empty lists return 200. Invalid requests return localized ProblemDetails, with field errors for model validation.
 
-This delivery uses two demonstration actors, `synthetic-admin` and `synthetic-employee`, selected through the `User-Id` header. In Development, `DevelopmentActors:Enabled=true` enables them. A published demonstration running in Production must explicitly set `Demo__Enabled=true`; with this flag disabled, Production rejects these headers. The selector is not authentication, and this delivery does not create IAM accounts or credentials. The actor lists and administrator role mapping are defined in the public base settings and continue to apply in either environment.
+Public registration creates administrator IAM accounts. Protected routes use Bearer JWT tokens. Keep `Demo__Enabled=false`, `DevelopmentActors__Enabled=false` and `DevelopmentData__SeedOnStartup=false`.
 
-`DevelopmentData:SeedOnStartup` loads the two profiles, a single owned commerce, the employee membership and the existing simulated Essential entitlement. Alternatively, run `dotnet run --project InstAlertPlatform.API --no-launch-profile -- --environment Development --seed-development true` after applying migrations. Production seeding requires explicit demo mode; startup seeding also requires `DevelopmentData__SeedOnStartup=true`. The seed reuses the administrator's existing commerce, preserves an inactive membership and stops if the fixture employee is assigned elsewhere or fixture ownership is ambiguous. It does not move employees or remove existing data.
-
-Use `GET /api/v1/businesses` for each demo actor to obtain the database-generated commerce ID. `GET /api/v1/business-members/me` returns the employee's association and status. The frontend connection context uses these existing endpoints rather than a fixed commerce ID.
+Use `GET /api/v1/sessions/current` and `GET /api/v1/businesses` to obtain the authenticated commerce ID. `GET /api/v1/business-members/me` returns the employee association. There is no role or commerce selector for unrelated accounts.
 
 For read-only connection checks, disable `Database__ApplyMigrationsOnStartup`, `DevelopmentData__SeedOnStartup`, `Workers__Enabled` and `Email__Enabled`.
 
@@ -55,7 +191,7 @@ The `EnforceSingleCommerceAssignments` migration adds these unique indexes and a
 | GET/PUT | `/api/v1/profiles/{userId}` | Read or update the caller's personal data |
 | GET/PUT | `/api/v1/profiles/{userId}/preferences` | Read or update the caller's locale |
 
-The server checks commerce ownership, capacity, transitions and duplicate email reservations. Personal profiles preserve the textual eight-digit DNI; the optional phone is normalized to 7–15 digits with an optional leading `+`. This demonstration keeps two fixed actors. Invitations do not create credentials; employee account provisioning requires IAM in a later delivery.
+The server checks commerce ownership, capacity, transitions and duplicate email reservations. Personal profiles preserve the textual eight-digit DNI; the optional phone is normalized to 7–15 digits with an optional leading `+`. Invitations provision employee IAM accounts with protected temporary credentials. Acceptance requires a personal password and complete profile.
 
 ## Alert lifecycle
 
@@ -95,13 +231,13 @@ Configure `PayPal__ClientId` and `PayPal__ClientSecret` outside source control. 
 
 Checkout creates a provider subscription awaiting buyer approval and stores its ID. It never grants access on its own. The server verifies the provider plan, correlation, completed payment, paid period and seat capacity before activation. The browser receives only public checkout data.
 
-Apply the `LinkSubscriptionCheckout` migration before running this version. Enable periodic synchronization with `Payments__Reconciliation__Enabled=true`; `Payments__Reconciliation__IntervalSeconds` defaults to 300 (30–3600). This worker checks pending approvals and known subscriptions using a separate scope per item. It does not depend on a webhook. The optional webhook additionally requires `PayPal__WebhookId` from the same Sandbox application.
+Enable periodic synchronization with `Payments__Reconciliation__Enabled=true`; `Payments__Reconciliation__IntervalSeconds` defaults to 300 (30–3600). This worker checks pending approvals and known subscriptions using a separate scope per item. It does not depend on a webhook. The optional webhook additionally requires `PayPal__WebhookId` from the same Sandbox application.
 
 Cancellation suspends future renewals and retains the paid period. `POST /api/v1/businesses/{businessId}/subscription/renewal` resumes a suspended agreement before that period expires. The worker finally cancels a scheduled agreement after expiry. Plan changes apply only after PayPal confirms the target plan and capacity is checked again; verifying a revision does not extend the paid period.
 
 ## Emergency contacts API
 
-The operational employee manages only their own emergency contacts. In Development, send `User-Id: synthetic-employee`; the Scalar/OpenAPI default for these routes is configured accordingly. `synthetic-admin` is not an operational member and receives 403. The development identity header is not production authentication; replace it with IAM-backed identity before production use.
+The operational employee manages only their own emergency contacts. These routes require an employee Bearer token, complete onboarding, an active membership and a current subscription. An administrator does not manage the employee personal contact list.
 
 | Method | Route | Purpose |
 |---|---|---|
@@ -111,11 +247,11 @@ The operational employee manages only their own emergency contacts. In Developme
 | PUT | `/api/v1/emergency-contacts/{id}` | Update an owned contact |
 | DELETE | `/api/v1/emergency-contacts/{id}` | Delete an owned contact |
 
-Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The caller determines ownership; request bodies do not choose an employee or provide audit timestamps. Names and relationships are trimmed, phones are normalized to 7–15 digits with an optional leading `+`, empty email becomes `null`, and notes are limited to 140 characters. Inactive memberships receive 403 for reads and writes, while foreign or missing contact IDs return 404. Invalid updates preserve the saved record. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled in F09.
+Create/update JSON uses `fullName`, `relationship`, and `phone`; `email` and `notes` are optional. The caller determines ownership; request bodies do not choose an employee or provide audit timestamps. Names and relationships are trimmed, phones are normalized to 7–15 digits with an optional leading `+`, empty email becomes `null`, and notes are limited to 140 characters. Inactive memberships receive 403 for reads and writes, while foreign or missing contact IDs return 404. Invalid updates preserve the saved record. The server validates these fields and returns 201 on creation, 200 on reads/updates, and 204 on deletion. Missing identity returns 401, a non-operational user receives 403 for list/create, an unknown or another user's contact returns 404, and invalid data returns 400. An optional email address is stored as contact data; this feature does not send notifications. Delivery is handled by Notifications.
 
 ## Notifications API
 
-The inbox is scoped to the caller and an accessible commerce. Both demonstration roles use the same contract; inactive memberships cannot read or update their former commerce's notifications or preferences.
+The inbox is scoped to the caller and an accessible commerce. Both authenticated roles use the same contract; inactive memberships cannot read or update their former commerce's notifications or preferences.
 
 | Method | Route | Purpose |
 |---|---|---|
@@ -151,29 +287,24 @@ TokenSettings__Audience
 TokenSettings__AccessTokenMinutes
 ```
 
-The signing key must contain at least 32 bytes. Access token duration defaults to 10080 minutes (7 days) and accepts 5 through 10080 minutes. Keep the signing key outside source control. Apply the `AddIamUsers` migration explicitly to the intended database; the migration adds only the `users` table and its unique email index.
+The signing key must contain at least 32 bytes. Access token duration defaults to 10080 minutes (7 days) and accepts 5 through 10080 minutes. Keep the signing key outside source control. Apply all existing migrations to the intended database before running the API.
 
 Temporary employee credentials expire after 24 hours. IAM stores their hash and protects the temporary delivery payload with ASP.NET Core Data Protection. Existing personal passwords are never recovered or included in invitation messages. Set `DataProtection__KeysPath` to a writable persistent key directory and protect that directory before enabling delivery across restarts or multiple instances.
 
-This feature introduces IAM without changing the existing demonstration flows in other modules. Connecting invitation delivery, enforcing onboarding on every module, and retiring demonstration identities are separate integration steps. The session's `hasApplicationAccess` value describes readiness; the remaining modules do not yet enforce it through IAM authorization policies.
+IAM is integrated with administrator onboarding, employee invitations and protected modules. The session's `hasApplicationAccess` value reflects profile completion, membership and paid entitlement; operational services enforce that access in addition to resource ownership.
 
-## Build verification
-
-```powershell
-dotnet build instalert-platform.sln
-```
 
 ## Employee invitations and access
 
 Invitation and membership operations use bearer sessions. The administrator invites employees only into their own commerce and with a current subscription and an available seat. A pending invitation reserves one seat. IAM provisions an employee account or rotates its temporary credential; personal passwords are never replaced by an invitation resend. Pending invitations reserve the email across commerces, and inactive memberships retain their original association.
 
-Employees change their temporary password, complete their personal profile, then accept an invitation addressed to their verified account email. `GET /api/v1/staff-invitations/me` lists only those pending invitations and includes the commerce name. Acceptance checks identity, profile, subscription and capacity again.
+Employees change their temporary password, complete their personal profile, then accept an invitation addressed to their account email. `GET /api/v1/staff-invitations/me` lists only those pending invitations and includes the commerce name. Acceptance checks identity, profile, subscription and capacity again.
 
 The administrator can deactivate or reactivate a membership, but cannot edit an incorporated employee's name, email or password. Correct a pending invitation's email by cancelling it and creating another invitation. Deactivation releases a seat without moving or deleting the employee's account; reactivation requires a valid subscription and capacity.
 
 ## Invitation credential delivery
 
-Apply `ProtectInvitationDelivery` before running this version. Invitations carry a protected temporary credential through the outbox and email queue. Notifications checks the invitation email, pending state, delivery sequence, credential expiry and IAM security stamp immediately before sending. Cancelled or superseded deliveries are skipped. Credentials are cleared from completed delivery records. Personal passwords are never sent. Invitation emails contain the temporary password and setup instructions, without a sign-in link. Existing accounts with a personal password receive instructions to use that password.
+Invitations carry a protected temporary credential through the outbox and email queue. Notifications checks the invitation email, pending state, delivery sequence, credential expiry and IAM security stamp immediately before sending. Cancelled or superseded deliveries are skipped. Credentials are cleared from completed delivery records. Personal passwords are never sent. Invitation emails contain the temporary password and setup instructions, without a sign-in link. Existing accounts with a personal password receive instructions to use that password.
 
 Configure `Workers__Enabled=true`, `Email__Enabled=true`, `Brevo__ApiKey` and `Email__FromAddress` outside source control. `Email__FromName` is optional. Retain a persistent writable `DataProtection__KeysPath` across restarts so queued credentials can be opened by the delivery worker. Temporary passwords expire 24 hours after issuance; the invitation and reserved seat remain pending until accepted or cancelled. Resending rotates a provisional credential and does not reserve another seat.
 
