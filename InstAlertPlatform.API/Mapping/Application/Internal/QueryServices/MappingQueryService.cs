@@ -25,7 +25,11 @@ public sealed class MappingQueryService(IIncidentProjectionRepository incidents,
         var center = await business.Handle(new RequireBusinessAccessQuery(businessId, actor.UserId, false), cancellationToken);
         Guard.Require(double.IsFinite(radius) && radius > 0 && radius <= 50000, "validation", "radiusMeters");
         var data = await Read(cancellationToken);
-        return data.Where(x => (category is null || category == "all" || x.Category == category) && (since is null || x.ReportedAt >= since) && Geography.DistanceMeters(center.Latitude, center.Longitude, x.Latitude, x.Longitude) <= radius).OrderByDescending(x => x.ReportedAt).ToList();
+        var matching = data.Where(x => (category is null || category == "all" || x.Category == category) && (since is null || x.ReportedAt >= since) && Geography.DistanceMeters(center.Latitude, center.Longitude, x.Latitude, x.Longitude) <= radius).OrderByDescending(x => x.ReportedAt).ToList();
+        if (matching.Count == 0) return matching;
+        var locations = await business.Handle(new GetBusinessLocationsQuery(), cancellationToken);
+        var names = locations.ToDictionary(location => location.Id, location => location.Name);
+        return matching.Select(incident => incident with { BusinessName = names.GetValueOrDefault(incident.BusinessId, "") }).ToList();
     }
 
     public async Task<IncidentSnapshot> Handle(GetMappedIncidentByIdQuery query, CancellationToken cancellationToken = default)
